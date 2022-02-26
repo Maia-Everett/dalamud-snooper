@@ -1,14 +1,22 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.Text;
+using ImGuiNET;
 using System;
 using System.Numerics;
 
-namespace SamplePlugin
+namespace Snooper
 {
     // It is good to have this be disposable in general, in case you ever need it
     // to do any cleanup
     class PluginUI : IDisposable
     {
-        private Configuration configuration;
+        private const int DefaultWidth = 650;
+        private const int DefaultHeight = 500;
+
+        private readonly Configuration configuration;
+        private readonly TargetManager targetManager;
+        private readonly ChatLog chatLog;
 
         // private ImGuiScene.TextureWrap goatImage;
 
@@ -28,9 +36,11 @@ namespace SamplePlugin
         }
 
         // passing in the image here just for simplicity
-        public PluginUI(Configuration configuration)
+        public PluginUI(Configuration configuration, TargetManager targetManager, ChatLog chatLog)
         {
             this.configuration = configuration;
+            this.targetManager = targetManager;
+            this.chatLog = chatLog;
         }
 
         public void Dispose()
@@ -58,25 +68,62 @@ namespace SamplePlugin
                 return;
             }
 
-            ImGui.SetNextWindowSize(new Vector2(375, 330), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSize(new Vector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowSizeConstraints(new Vector2(375, 330), new Vector2(float.MaxValue, float.MaxValue));
-            if (ImGui.Begin("My Amazing Window", ref this.visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+
+            var targetName = GetTargetName();
+            // Window title changes, but the part after the ### is the unique identifier so window position stays constant
+            var windowTitle = "Snooper: " + (targetName ?? "(No target player)") + "###Snooper";
+
+            if (ImGui.Begin(windowTitle, ref this.visible))
             {
-                ImGui.Text($"The random config bool is {this.configuration.SomePropertyToBeSavedAndWithADefault}");
-
-                if (ImGui.Button("Show Settings"))
+                if (targetName != null)
                 {
-                    SettingsVisible = true;
+                    foreach (var entry in chatLog.Get(targetName))
+                    {
+                        ShowMessage(targetName, entry.Message, entry.Type);
+                    }
                 }
-
-                ImGui.Spacing();
-
-                ImGui.Text("Have a goat:");
-                ImGui.Indent(55);
-                //ImGui.Image(this.goatImage.ImGuiHandle, new Vector2(this.goatImage.Width, this.goatImage.Height));
-                ImGui.Unindent(55);
             }
             ImGui.End();
+        }
+
+        private string? GetTargetName()
+        {
+            var target = targetManager.Target;
+
+            if (target == null || target.ObjectKind != ObjectKind.Player)
+            {
+                return null;
+            }
+
+            return target.Name.ToString();
+        }
+
+        private void ShowMessage(string sender, string message, XivChatType type)
+        {
+            string infix;
+
+            switch (type)
+            {
+                case XivChatType.Say:
+                    infix = ": ";
+                    break;
+                case XivChatType.Shout:
+                    infix = " shouts: ";
+                    break;
+                case XivChatType.Yell:
+                    infix = " yells: ";
+                    break;
+                case XivChatType.CustomEmote:
+                case XivChatType.StandardEmote:
+                    infix = "";
+                    break;
+                default:
+                    throw new Exception(); // Cannot happen
+            }
+
+            ImGui.TextWrapped($"{sender}{infix}{message}");
         }
 
         public void DrawSettingsWindow()
