@@ -3,6 +3,7 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
 using ImGuiNET;
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Snooper
@@ -13,6 +14,24 @@ namespace Snooper
     {
         private const int DefaultWidth = 650;
         private const int DefaultHeight = 500;
+
+        private readonly IDictionary<XivChatType, string> infixes = new Dictionary<XivChatType, string>()
+        {
+            { XivChatType.Say, ": " },
+            { XivChatType.StandardEmote, "" },
+            { XivChatType.CustomEmote, "" },
+            { XivChatType.Shout, " shouts: " },
+            { XivChatType.Yell, " yells: " },
+        };
+
+        private readonly IDictionary<XivChatType, uint> chatColors = new Dictionary<XivChatType, uint>()
+        {
+            { XivChatType.Say, 0xf7f7f5 },
+            { XivChatType.StandardEmote, 0x9af2d8 },
+            { XivChatType.CustomEmote, 0x9af2d8 },
+            { XivChatType.Shout, 0xffba7c },
+            { XivChatType.Yell, 0xffff00 },
+        };
 
         private readonly Configuration configuration;
         private readonly TargetManager targetManager;
@@ -102,28 +121,9 @@ namespace Snooper
 
         private void ShowMessage(string sender, string message, XivChatType type)
         {
-            string infix;
-
-            switch (type)
-            {
-                case XivChatType.Say:
-                    infix = ": ";
-                    break;
-                case XivChatType.Shout:
-                    infix = " shouts: ";
-                    break;
-                case XivChatType.Yell:
-                    infix = " yells: ";
-                    break;
-                case XivChatType.CustomEmote:
-                case XivChatType.StandardEmote:
-                    infix = "";
-                    break;
-                default:
-                    throw new Exception(); // Cannot happen
-            }
-
-            ImGui.TextWrapped($"{sender}{infix}{message}");
+            ImGui.PushStyleColor(ImGuiCol.Text, chatColors[type] | 0xff000000);
+            ImGui.TextWrapped($"{sender}{infixes[type]}{message}");
+            ImGui.PopStyleColor();
         }
 
         public void DrawSettingsWindow()
