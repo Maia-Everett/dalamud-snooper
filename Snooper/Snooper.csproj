@@ -21,11 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\Data\goat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-    <Content Include="..\Data\Snooper.json" Link="Snooper.json">
+    <Content Include=".\Snooper.json" Link="Snooper.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
