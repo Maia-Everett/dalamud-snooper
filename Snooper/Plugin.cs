@@ -15,10 +15,7 @@ namespace Snooper
         private const string commandName = "/snooper";
 
         private CommandManager CommandManager { get; init; }
-
-        private Configuration Configuration { get; init; }
         private PluginUI PluginUi { get; init; }
-
         private readonly ChatListener chatListener;
 
         public Plugin(
@@ -27,17 +24,11 @@ namespace Snooper
             [RequiredVersion("1.0")] ChatGui chatGui,
             [RequiredVersion("1.0")] TargetManager targetManager)
         {
-            this.CommandManager = commandManager;
-
-            this.Configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            this.Configuration.Initialize(pluginInterface);
-
-            // you might normally want to embed resources and load them from the manifest stream
-            // var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
-            // var goatImage = this.PluginInterface.UiBuilder.LoadImage(imagePath);
             var chatLog = new ChatLog();
 
-            this.PluginUi = new PluginUI(this.Configuration, targetManager, chatLog);
+            this.CommandManager = commandManager;
+            this.PluginUi = new PluginUI(targetManager, chatLog);
+            this.chatListener = new ChatListener(chatGui, chatLog);
 
             this.CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
@@ -45,9 +36,6 @@ namespace Snooper
             });
 
             pluginInterface.UiBuilder.Draw += DrawUI;
-            // pluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
-
-            chatListener = new ChatListener(chatGui, chatLog);
         }
 
         public void Dispose()
@@ -66,11 +54,6 @@ namespace Snooper
         private void DrawUI()
         {
             this.PluginUi.Draw();
-        }
-
-        private void DrawConfigUI()
-        {
-            this.PluginUi.SettingsVisible = true;
         }
     }
 }
