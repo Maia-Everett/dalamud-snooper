@@ -34,7 +34,7 @@ namespace Snooper
                 || type == XivChatType.Yell
                 || type == XivChatType.Shout)
             {
-                chatLog.Add(sender.ToString(), new Snooper.ChatEntry(message.ToString(), type));
+                chatLog.Add(sender.ToString(), new Snooper.ChatEntry(message.ToString(), type, DateTime.Now));
             }
         }
     }

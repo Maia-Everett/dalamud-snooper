@@ -34,6 +34,9 @@ namespace Snooper
         private readonly TargetManager targetManager;
         private readonly ChatLog chatLog;
 
+        private string? lastTarget;
+        private DateTime? lastChatUpdate;
+
         // this extra bool exists for ImGui, since you can't ref a property
         private bool visible = false;
         public bool Visible
@@ -77,13 +80,26 @@ namespace Snooper
             {
                 if (targetName != null)
                 {
+                    var log = chatLog.Get(targetName);
+
                     foreach (var entry in chatLog.Get(targetName))
                     {
                         ShowMessage(targetName, entry.Message, entry.Type);
                     }
-                }
+
+                    DateTime? chatUpdateTime = log.Last != null ? log.Last.Value.Time : null;
+
+                    if (targetName != lastTarget || chatUpdateTime != lastChatUpdate)
+                    {
+                        ImGui.SetScrollHereY(1);
+                    }
+
+                    lastChatUpdate = chatUpdateTime;
+                }                
             }
             ImGui.End();
+
+            lastTarget = targetName;
         }
 
         private string? GetTargetName()
@@ -101,7 +117,16 @@ namespace Snooper
         private void ShowMessage(string sender, string message, XivChatType type)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, chatColors[type] | 0xff000000);
-            ImGui.TextWrapped($"{sender}{infixes[type]}{message}");
+
+            if (type != XivChatType.StandardEmote)
+            {
+                ImGui.TextWrapped($"{sender}{infixes[type]}{message}");
+            }
+            else
+            {
+                ImGui.TextWrapped(message);
+            }
+
             ImGui.PopStyleColor();
         }
     }

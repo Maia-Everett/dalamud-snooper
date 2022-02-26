@@ -11,17 +11,19 @@ namespace Snooper
     {
         public string Message { get; init; }
         public XivChatType Type { get; init; }
+        public DateTime Time { get; init; }
 
-        public ChatEntry(string message, XivChatType type)
+        public ChatEntry(string message, XivChatType type, DateTime time)
         {
             this.Message = message;
             this.Type = type;
+            this.Time = time;
         }
     }
 
     internal class ChatLog
     {
-        private static readonly ICollection<ChatEntry> EmptyList = Array.Empty<ChatEntry>();
+        private static readonly LinkedList<ChatEntry> EmptyList = new();
         private const int MaxSenders = 100;
         private const int MaxMessagesPerSender = 300;
 
@@ -60,7 +62,7 @@ namespace Snooper
             senderLog.AddLast(entry);
         }
 
-        public ICollection<ChatEntry> Get(string senderName)
+        public LinkedList<ChatEntry> Get(string senderName)
         {
             entryCache.TryGetValue(senderName, out LinkedList<ChatEntry>? result);
             return result ?? EmptyList;
