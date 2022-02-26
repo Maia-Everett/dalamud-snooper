@@ -23,7 +23,7 @@ namespace Snooper
     {
         private static readonly ICollection<ChatEntry> EmptyList = Array.Empty<ChatEntry>();
         private const int MaxSenders = 100;
-        private const int MaxMessagesPerSender = 100;
+        private const int MaxMessagesPerSender = 300;
 
         private readonly Dictionary<string, LinkedList<ChatEntry>> entryCache = new();
         private readonly LinkedList<string> lruList = new();
