@@ -29,6 +29,7 @@ namespace Snooper
             { XivChatType.CustomEmote, ToImGuiColor(0x5ae0b9) },
             { XivChatType.Shout, ToImGuiColor(0xffba7c) },
             { XivChatType.Yell, ToImGuiColor(0xffff00) },
+            { XivChatType.Party, ToImGuiColor(0x42c8db) },
         };
 
         private static uint ToImGuiColor(uint rgb)
@@ -124,13 +125,17 @@ namespace Snooper
         {
             ImGui.PushStyleColor(ImGuiCol.Text, chatColors[type] | 0xff000000);
 
-            if (type != XivChatType.StandardEmote)
+            if (type == XivChatType.StandardEmote)
             {
-                ImGui.TextWrapped($"{sender}{infixes[type]}{message}");
+                ImGui.TextWrapped(message);
+            }
+            else if (type == XivChatType.Party)
+            {
+                ImGui.TextWrapped($"({sender}) {message}");
             }
             else
             {
-                ImGui.TextWrapped(message);
+                ImGui.TextWrapped($"{sender}{infixes[type]}{message}");
             }
 
             ImGui.PopStyleColor();

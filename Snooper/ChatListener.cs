@@ -33,7 +33,8 @@ namespace Snooper
                 || type == XivChatType.StandardEmote
                 || type == XivChatType.CustomEmote
                 || type == XivChatType.Yell
-                || type == XivChatType.Shout)
+                || type == XivChatType.Shout
+                || type == XivChatType.Party)
             {
                 var playerPayload = sender.Payloads.SingleOrDefault(x => x is PlayerPayload) as PlayerPayload
                     ?? message.Payloads.FirstOrDefault(x => x is PlayerPayload) as PlayerPayload;
