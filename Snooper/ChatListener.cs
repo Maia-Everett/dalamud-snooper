@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,11 @@ namespace Snooper
                 || type == XivChatType.Yell
                 || type == XivChatType.Shout)
             {
-                chatLog.Add(sender.ToString(), new Snooper.ChatEntry(message.ToString(), type, DateTime.Now));
+                var playerPayload = sender.Payloads.SingleOrDefault(x => x is PlayerPayload) as PlayerPayload
+                    ?? message.Payloads.FirstOrDefault(x => x is PlayerPayload) as PlayerPayload;
+                var playerName = playerPayload != null ? playerPayload.PlayerName : sender.ToString();
+
+                chatLog.Add(playerName, new Snooper.ChatEntry(message.ToString(), type, DateTime.Now));
             }
         }
     }
