@@ -24,12 +24,17 @@ namespace Snooper
 
         private readonly IDictionary<XivChatType, uint> chatColors = new Dictionary<XivChatType, uint>()
         {
-            { XivChatType.Say, 0xf7f7f5 },
-            { XivChatType.StandardEmote, 0x9af2d8 },
-            { XivChatType.CustomEmote, 0x9af2d8 },
-            { XivChatType.Shout, 0xffba7c },
-            { XivChatType.Yell, 0xffff00 },
+            { XivChatType.Say, ToImGuiColor(0xf7f7f5) },
+            { XivChatType.StandardEmote, ToImGuiColor(0x5ae0b9) },
+            { XivChatType.CustomEmote, ToImGuiColor(0x5ae0b9) },
+            { XivChatType.Shout, ToImGuiColor(0xffba7c) },
+            { XivChatType.Yell, ToImGuiColor(0xffff00) },
         };
+
+        private static uint ToImGuiColor(uint rgb)
+        {
+            return (rgb & 0xff) << 16 | (rgb & 0xff00) | (rgb & 0xff0000) >> 16 | 0xff000000;
+        }
 
         private readonly TargetManager targetManager;
         private readonly ChatLog chatLog;
@@ -130,4 +135,6 @@ namespace Snooper
             ImGui.PopStyleColor();
         }
     }
+
+
 }
