@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>Vielle Janlenoux</Authors>
     <Company></Company>
-    <Version>0.1.0.2</Version>
+    <Version>0.1.0.3</Version>
     <Description>See chat messages /said by your current target.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
@@ -28,11 +28,11 @@
 
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
-    <FileVersion>0.1.0.2</FileVersion>
+    <FileVersion>0.1.0.3</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="2.1.5" />
+    <PackageReference Include="DalamudPackager" Version="2.1.6" />
     <Reference Include="FFXIVClientStructs">
       <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
       <Private>false</Private>
