@@ -34,7 +34,7 @@ namespace Snooper
 
             this.CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
-                HelpMessage = "Shows a separate window that shows only the \"say\" and \"emote\" messages from the player you're currently targeting. Useful for keeping track of different conversations during crowded RP events."
+                HelpMessage = "Shows the Snooper window."
             });
 
             pluginInterface.UiBuilder.Draw += DrawUI;
