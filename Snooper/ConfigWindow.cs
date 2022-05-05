@@ -12,30 +12,125 @@ namespace Snooper
 {
     class ConfigWindow : IDisposable
     {
+        internal class ChannelEntry
+        {
+            internal readonly string name;
+            internal readonly XivChatType type;
+            internal bool enabled;
+            internal uint color;
+
+            internal ChannelEntry(XivChatType type, string name)
+            {
+                this.name = name;
+                this.type = type;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is ChannelEntry entry &&
+                       name == entry.name &&
+                       type == entry.type &&
+                       enabled == entry.enabled &&
+                       color == entry.color;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(name, type, enabled, color);
+            }
+        }
+
         internal class LocalConfiguration
         {
             private readonly Configuration configuration;
 
             internal float opacity;
             internal float fontScale;
+            internal IList<ChannelEntry> channels;
 
             internal LocalConfiguration(Configuration configuration)
             {
                 this.configuration = configuration;
                 opacity = configuration.Opacity;
                 fontScale = configuration.FontScale;
+
+                channels = new List<ChannelEntry>
+                {
+                    new ChannelEntry(XivChatType.Say, "Say"),
+                    new ChannelEntry(XivChatType.TellIncoming, "Tell"),
+                    new ChannelEntry(XivChatType.Shout, "Shout"),
+                    new ChannelEntry(XivChatType.Yell, "Yell"),
+                    new ChannelEntry(XivChatType.Party, "Party"),
+                    new ChannelEntry(XivChatType.Alliance, "Alliance"),
+                    new ChannelEntry(XivChatType.FreeCompany, "Free Company"),
+                    new ChannelEntry(XivChatType.Ls1, "Linkshell"),
+                    new ChannelEntry(XivChatType.CrossLinkShell1, "Cross-World Linkshell"),
+                };
+
+                foreach (var channel in channels)
+                {
+                    channel.enabled = configuration.AllowedChatTypes.Contains(channel.type);
+                }
             }
 
             internal bool IsChanged()
             {
-                return opacity != configuration.Opacity
-                    || fontScale != configuration.FontScale;
+                return this != new LocalConfiguration(configuration);
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is LocalConfiguration other &&
+                       opacity == other.opacity &&
+                       fontScale == other.fontScale &&
+                       channels.Equals(other.channels);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(opacity, fontScale, channels);
             }
 
             internal void Save()
             {
                 configuration.Opacity = opacity;
                 configuration.FontScale = fontScale;
+
+                foreach (var channel in channels)
+                {
+                    SaveChannelSettings(channel, channel.type);
+
+                    if (channel.type == XivChatType.Party)
+                    {
+                        SaveChannelSettings(channel, XivChatType.CrossParty);
+                    }
+                    else if (channel.type == XivChatType.Ls1)
+                    {
+                        for (int i = 2; i <= 8; i++)
+                        {
+                            SaveChannelSettings(channel, (XivChatType)((ushort)XivChatType.Ls2 + i - 2));
+                        }
+                    }
+                    else if (channel.type == XivChatType.CrossLinkShell1)
+                    {
+                        for (int i = 2; i <= 8; i++)
+                        {
+                            SaveChannelSettings(channel, (XivChatType)((ushort)XivChatType.CrossLinkShell2 + i - 2));
+                        }
+                    }
+                }
+            }
+
+            private void SaveChannelSettings(ChannelEntry channel, XivChatType type)
+            {
+                if (channel.enabled)
+                {
+                    configuration.AllowedChatTypes.Add(type);
+                }
+                else
+                {
+                    configuration.AllowedChatTypes.Remove(type);
+                }
             }
         }
 
@@ -84,6 +179,15 @@ namespace Snooper
 
                 ImGui.SliderFloat("Window opacity", ref localConfig.opacity, 0, 1);
                 ImGui.SliderFloat("Font scale", ref localConfig.fontScale, 0.5f, 3);
+
+                ImGui.Dummy(new Vector2(0, 8));
+
+                ImGui.Text("Channels:");
+
+                foreach (var channel in localConfig.channels)
+                {
+                    ImGui.Checkbox(channel.name, ref channel.enabled);
+                }
 
                 // Apply changes, if any
 
