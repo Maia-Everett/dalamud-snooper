@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>Vielle Janlenoux</Authors>
     <Company></Company>
-    <Version>0.1.0.3</Version>
+    <Version>0.2.0.0</Version>
     <Description>See chat messages /said by your current target.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
@@ -28,7 +28,7 @@
 
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
-    <FileVersion>0.1.0.3</FileVersion>
+    <FileVersion>0.2.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
