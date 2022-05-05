@@ -13,12 +13,14 @@ namespace Snooper
 {
     internal class ChatListener: IDisposable
     {
+        private readonly Configuration configuration;
         private readonly ChatGui chatGui;
         private readonly ChatLog chatLog;
         private readonly ClientState clientState;
 
-        internal ChatListener(ClientState clientState, ChatGui chatGui, ChatLog chatLog)
+        internal ChatListener(Configuration configuration, ClientState clientState, ChatGui chatGui, ChatLog chatLog)
         {
+            this.configuration = configuration;
             this.clientState = clientState;
             this.chatGui = chatGui;
             this.chatLog = chatLog;
@@ -32,12 +34,7 @@ namespace Snooper
 
         private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
         {
-            if (type == XivChatType.Say
-                || type == XivChatType.StandardEmote
-                || type == XivChatType.CustomEmote
-                || type == XivChatType.Yell
-                || type == XivChatType.Shout
-                || type == XivChatType.Party)
+            if (configuration.AllowedChatTypes.Contains(type))
             {
                 PlayerPayload? playerPayload;
 

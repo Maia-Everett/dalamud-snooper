@@ -12,29 +12,51 @@ namespace Snooper
     {
         private const int DefaultWidth = 650;
         private const int DefaultHeight = 500;
-
-        private readonly IDictionary<XivChatType, string> infixes = new Dictionary<XivChatType, string>()
+        private static uint ToImGuiColor(uint rgb)
         {
-            { XivChatType.Say, ": " },
-            { XivChatType.StandardEmote, "" },
-            { XivChatType.CustomEmote, "" },
-            { XivChatType.Shout, " shouts: " },
-            { XivChatType.Yell, " yells: " },
+            return (rgb & 0xff) << 16 | (rgb & 0xff00) | (rgb & 0xff0000) >> 16 | 0xff000000;
+        }
+
+        private static readonly IDictionary<XivChatType, string> formats = new Dictionary<XivChatType, string>()
+        {
+            { XivChatType.Say, "{0}: {1}" },
+            { XivChatType.TellIncoming, "{0} >> {1}" },
+            { XivChatType.StandardEmote, "{1}" },
+            { XivChatType.CustomEmote, "{0} {1}" },
+            { XivChatType.Shout, "{0} shouts: {1}" },
+            { XivChatType.Yell, "{0} yells: {1}" },
+            { XivChatType.Party, "({0}) {1}" },
+            { XivChatType.CrossParty, "({0}) {1}" },
+            { XivChatType.Alliance, "(({0})) {1}" },
+            { XivChatType.FreeCompany, "[FC]<{0}> {1}" },
         };
 
-        private readonly IDictionary<XivChatType, uint> chatColors = new Dictionary<XivChatType, uint>()
+        private static readonly IDictionary<XivChatType, uint> chatColors = new Dictionary<XivChatType, uint>()
         {
             { XivChatType.Say, ToImGuiColor(0xf7f7f5) },
+            { XivChatType.TellIncoming, ToImGuiColor(0xffc8ed) },
             { XivChatType.StandardEmote, ToImGuiColor(0x5ae0b9) },
             { XivChatType.CustomEmote, ToImGuiColor(0x5ae0b9) },
             { XivChatType.Shout, ToImGuiColor(0xffba7c) },
             { XivChatType.Yell, ToImGuiColor(0xffff00) },
             { XivChatType.Party, ToImGuiColor(0x42c8db) },
+            { XivChatType.CrossParty, ToImGuiColor(0x42c8db) },
+            { XivChatType.Alliance, ToImGuiColor(0xff9d20) },
+            { XivChatType.FreeCompany, ToImGuiColor(0x9fd0d6) },
         };
 
-        private static uint ToImGuiColor(uint rgb)
+        static SnooperWindow()
         {
-            return (rgb & 0xff) << 16 | (rgb & 0xff00) | (rgb & 0xff0000) >> 16 | 0xff000000;
+            for (int i = 1; i <= 8; i++)
+            {
+                var lsChannel = (XivChatType)((ushort)XivChatType.Ls1 + i - 1);
+                formats.Add(lsChannel, string.Format("[LS{0}]{1}", i, "<{0}> {1}"));
+                chatColors.Add(lsChannel, ToImGuiColor(0xdcf56e));
+
+                var cwlsChannel = i == 1 ? XivChatType.CrossLinkShell1 : (XivChatType)((ushort)XivChatType.CrossLinkShell2 + i - 2);
+                formats.Add(cwlsChannel, string.Format("[CWLS{0}]{1}", i, "<{0}> {1}"));
+                chatColors.Add(cwlsChannel, ToImGuiColor(0xdcf56e));
+            }
         }
 
         private readonly Configuration configuration;
@@ -124,21 +146,13 @@ namespace Snooper
 
         private void ShowMessage(string sender, string message, XivChatType type)
         {
+            if (!configuration.AllowedChatTypes.Contains(type))
+            {
+                return;
+            }
+
             ImGui.PushStyleColor(ImGuiCol.Text, chatColors[type] | 0xff000000);
-
-            if (type == XivChatType.StandardEmote)
-            {
-                ImGui.TextWrapped(message);
-            }
-            else if (type == XivChatType.Party)
-            {
-                ImGui.TextWrapped($"({sender}) {message}");
-            }
-            else
-            {
-                ImGui.TextWrapped($"{sender}{infixes[type]}{message}");
-            }
-
+            ImGui.TextWrapped(string.Format(formats[type], sender, message));
             ImGui.PopStyleColor();
         }
     }

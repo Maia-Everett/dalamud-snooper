@@ -33,7 +33,7 @@ namespace Snooper
             this.commandManager = commandManager;
             snooperWindow = new SnooperWindow(configuration, targetManager, chatLog);
             configWindow = new ConfigWindow(configuration, pluginInterface);
-            chatListener = new ChatListener(clientState, chatGui, chatLog);
+            chatListener = new ChatListener(configuration, clientState, chatGui, chatLog);
 
             this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
