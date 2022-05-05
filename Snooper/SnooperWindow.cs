@@ -8,7 +8,7 @@ using System.Numerics;
 
 namespace Snooper
 {
-    class PluginUI : IDisposable
+    class SnooperWindow : IDisposable
     {
         private const int DefaultWidth = 650;
         private const int DefaultHeight = 500;
@@ -52,7 +52,7 @@ namespace Snooper
         }
 
         // passing in the image here just for simplicity
-        public PluginUI(TargetManager targetManager, ChatLog chatLog)
+        public SnooperWindow(TargetManager targetManager, ChatLog chatLog)
         {
             this.targetManager = targetManager;
             this.chatLog = chatLog;

@@ -16,7 +16,7 @@ namespace Snooper
         private const string commandName = "/snooper";
 
         private readonly CommandManager commandManager;
-        private readonly PluginUI pluginUi;
+        private readonly SnooperWindow snooperWindow;
         private readonly ChatListener chatListener;
 
         public Plugin(
@@ -29,7 +29,7 @@ namespace Snooper
             var chatLog = new ChatLog();
 
             this.commandManager = commandManager;
-            this.pluginUi = new PluginUI(targetManager, chatLog);
+            this.snooperWindow = new SnooperWindow(targetManager, chatLog);
             this.chatListener = new ChatListener(clientState, chatGui, chatLog);
 
             this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)
@@ -42,7 +42,7 @@ namespace Snooper
 
         public void Dispose()
         {
-            pluginUi.Dispose();
+            snooperWindow.Dispose();
             commandManager.RemoveHandler(commandName);
             chatListener.Dispose();
         }
@@ -50,12 +50,12 @@ namespace Snooper
         private void OnCommand(string command, string args)
         {
             // in response to the slash command, just display our main UI
-            pluginUi.Visible = true;
+            snooperWindow.Visible = true;
         }
 
         private void DrawUI()
         {
-            pluginUi.Draw();
+            snooperWindow.Draw();
         }
     }
 }
