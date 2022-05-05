@@ -37,6 +37,7 @@ namespace Snooper
             return (rgb & 0xff) << 16 | (rgb & 0xff00) | (rgb & 0xff0000) >> 16 | 0xff000000;
         }
 
+        private readonly Configuration configuration;
         private readonly TargetManager targetManager;
         private readonly ChatLog chatLog;
 
@@ -52,8 +53,9 @@ namespace Snooper
         }
 
         // passing in the image here just for simplicity
-        public SnooperWindow(TargetManager targetManager, ChatLog chatLog)
+        public SnooperWindow(Configuration configuration, TargetManager targetManager, ChatLog chatLog)
         {
+            this.configuration = configuration;
             this.targetManager = targetManager;
             this.chatLog = chatLog;
         }
@@ -64,12 +66,7 @@ namespace Snooper
         }
 
         public void Draw()
-        {
-            DrawMainWindow();
-        }
-
-        public void DrawMainWindow()
-        {
+        {            
             if (!Visible)
             {
                 return;
@@ -77,7 +74,7 @@ namespace Snooper
 
             ImGui.SetNextWindowSize(new Vector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowSizeConstraints(new Vector2(150, 100), new Vector2(float.MaxValue, float.MaxValue));
-            ImGui.SetNextWindowBgAlpha(0.6f);
+            ImGui.SetNextWindowBgAlpha(configuration.Opacity);
 
             var targetName = GetTargetName();
             // Window title changes, but the part after the ### is the unique identifier so window position stays constant
@@ -85,6 +82,8 @@ namespace Snooper
 
             if (ImGui.Begin(windowTitle, ref this.visible))
             {
+                ImGui.SetWindowFontScale(configuration.FontScale);
+
                 if (targetName != null)
                 {
                     var log = chatLog.Get(targetName);
@@ -102,7 +101,9 @@ namespace Snooper
                     }
 
                     lastChatUpdate = chatUpdateTime;
-                }                
+                }
+
+                ImGui.SetWindowFontScale(1);
             }
             ImGui.End();
 

@@ -17,6 +17,7 @@ namespace Snooper
 
         private readonly CommandManager commandManager;
         private readonly SnooperWindow snooperWindow;
+        private readonly ConfigWindow configWindow;
         private readonly ChatListener chatListener;
 
         public Plugin(
@@ -27,10 +28,12 @@ namespace Snooper
             [RequiredVersion("1.0")] TargetManager targetManager)
         {
             var chatLog = new ChatLog();
+            var configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
             this.commandManager = commandManager;
-            this.snooperWindow = new SnooperWindow(targetManager, chatLog);
-            this.chatListener = new ChatListener(clientState, chatGui, chatLog);
+            snooperWindow = new SnooperWindow(configuration, targetManager, chatLog);
+            configWindow = new ConfigWindow(configuration, pluginInterface);
+            chatListener = new ChatListener(clientState, chatGui, chatLog);
 
             this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
@@ -38,6 +41,7 @@ namespace Snooper
             });
 
             pluginInterface.UiBuilder.Draw += DrawUI;
+            pluginInterface.UiBuilder.OpenConfigUi += () => configWindow.Visible = true;
         }
 
         public void Dispose()
@@ -56,6 +60,7 @@ namespace Snooper
         private void DrawUI()
         {
             snooperWindow.Draw();
+            configWindow.Draw();
         }
     }
 }
