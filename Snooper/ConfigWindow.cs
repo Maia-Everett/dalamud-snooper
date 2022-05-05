@@ -17,7 +17,7 @@ namespace Snooper
             internal readonly string name;
             internal readonly XivChatType type;
             internal bool enabled;
-            internal uint color;
+            internal Vector3 color;
 
             internal ChannelEntry(XivChatType type, string name)
             {
@@ -40,6 +40,12 @@ namespace Snooper
             }
         }
 
+        internal static Vector3 ToVector3(uint color)
+        {
+            var color4 = ImGui.ColorConvertU32ToFloat4(color);
+            return new Vector3(color4.X, color4.Y, color4.Z);
+        }
+
         internal class LocalConfiguration
         {
             private readonly Configuration configuration;
@@ -58,6 +64,7 @@ namespace Snooper
                 {
                     new ChannelEntry(XivChatType.Say, "Say"),
                     new ChannelEntry(XivChatType.TellIncoming, "Tell"),
+                    new ChannelEntry(XivChatType.CustomEmote, "Emote"),
                     new ChannelEntry(XivChatType.Shout, "Shout"),
                     new ChannelEntry(XivChatType.Yell, "Yell"),
                     new ChannelEntry(XivChatType.Party, "Party"),
@@ -70,6 +77,13 @@ namespace Snooper
                 foreach (var channel in channels)
                 {
                     channel.enabled = configuration.AllowedChatTypes.Contains(channel.type);
+
+                    if (!configuration.ChatColors.TryGetValue(channel.type, out uint intColor))
+                    {
+                        configuration.ChatColors[channel.type] = Configuration.DefaultChatColors[channel.type];
+                    }
+
+                    channel.color = ToVector3(configuration.ChatColors[channel.type]);
                 }
             }
 
@@ -100,7 +114,11 @@ namespace Snooper
                 {
                     SaveChannelSettings(channel, channel.type);
 
-                    if (channel.type == XivChatType.Party)
+                    if (channel.type == XivChatType.CustomEmote)
+                    {
+                        SaveChannelSettings(channel, XivChatType.StandardEmote);
+                    }
+                    else if (channel.type == XivChatType.Party)
                     {
                         SaveChannelSettings(channel, XivChatType.CrossParty);
                     }
@@ -131,6 +149,10 @@ namespace Snooper
                 {
                     configuration.AllowedChatTypes.Remove(type);
                 }
+
+                var color = channel.color;
+                var color4 = new Vector4(color.X, color.Y, color.Z, 1);
+                configuration.ChatColors[type] = ImGui.ColorConvertFloat4ToU32(color4);
             }
         }
 
@@ -182,11 +204,26 @@ namespace Snooper
 
                 ImGui.Dummy(new Vector2(0, 8));
 
-                ImGui.Text("Channels:");
+                ImGui.Text("Show channels:");
 
                 foreach (var channel in localConfig.channels)
                 {
-                    ImGui.Checkbox(channel.name, ref channel.enabled);
+                    ImGui.Checkbox("##enable_" + channel.name, ref channel.enabled);
+                    ImGui.SameLine();
+                    ImGui.Dummy(new Vector2(8, 0));
+                    ImGui.SameLine();
+                    ImGui.ColorEdit3("##color_" + channel.name, ref channel.color, ImGuiColorEditFlags.NoInputs);
+                    ImGui.SameLine();
+
+                    if (ImGui.Button("Reset Color##resetcolor_" + channel.name))
+                    {
+                        channel.color = ToVector3(Configuration.DefaultChatColors[channel.type]);
+                    }
+
+                    ImGui.SameLine();
+                    ImGui.Dummy(new Vector2(8, 0));
+                    ImGui.SameLine();
+                    ImGui.Text(channel.name);
                 }
 
                 // Apply changes, if any

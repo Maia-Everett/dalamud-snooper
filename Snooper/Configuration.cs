@@ -42,9 +42,44 @@ namespace Snooper
             XivChatType.CrossLinkShell8,
         };
 
+        private static uint ToImGuiColor(uint rgb)
+        {
+            return (rgb & 0xff) << 16 | (rgb & 0xff00) | (rgb & 0xff0000) >> 16 | 0xff000000;
+        }
+
+        public static readonly IDictionary<XivChatType, uint> DefaultChatColors = new Dictionary<XivChatType, uint>()
+        {
+            { XivChatType.Say, ToImGuiColor(0xf7f7f5) },
+            { XivChatType.TellIncoming, ToImGuiColor(0xffc8ed) },
+            { XivChatType.StandardEmote, ToImGuiColor(0x5ae0b9) },
+            { XivChatType.CustomEmote, ToImGuiColor(0x5ae0b9) },
+            { XivChatType.Shout, ToImGuiColor(0xffba7c) },
+            { XivChatType.Yell, ToImGuiColor(0xffff00) },
+            { XivChatType.Party, ToImGuiColor(0x42c8db) },
+            { XivChatType.CrossParty, ToImGuiColor(0x42c8db) },
+            { XivChatType.Alliance, ToImGuiColor(0xff9d20) },
+            { XivChatType.FreeCompany, ToImGuiColor(0x9fd0d6) },
+        };
+
+        static Configuration()
+        {
+            // Initialize LS and CWLS colors
+            var lsColor = ToImGuiColor(0xdcf56e);
+
+            for (int i = 1; i <= 8; i++)
+            {
+                var lsChannel = (XivChatType)((ushort)XivChatType.Ls1 + i - 1);
+                DefaultChatColors.Add(lsChannel, lsColor);
+
+                var cwlsChannel = i == 1 ? XivChatType.CrossLinkShell1 : (XivChatType)((ushort)XivChatType.CrossLinkShell2 + i - 2);
+                DefaultChatColors.Add(cwlsChannel, lsColor);
+            }
+        }
+
         public int Version { get; set; } = 0;
         public float Opacity { get; set; } = 0.6f;
         public float FontScale { get; set; } = 1.0f;
-        public ISet<XivChatType> AllowedChatTypes { get; set; } = new HashSet<XivChatType>(Configuration.AllAllowedChatTypes);
+        public ISet<XivChatType> AllowedChatTypes { get; set; } = new HashSet<XivChatType>(AllAllowedChatTypes);
+        public IDictionary<XivChatType, uint> ChatColors = new Dictionary<XivChatType, uint>(DefaultChatColors);
     }
 }
