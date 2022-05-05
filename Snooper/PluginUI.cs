@@ -76,7 +76,7 @@ namespace Snooper
             }
 
             ImGui.SetNextWindowSize(new Vector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowSizeConstraints(new Vector2(375, 330), new Vector2(float.MaxValue, float.MaxValue));
+            ImGui.SetNextWindowSizeConstraints(new Vector2(150, 100), new Vector2(float.MaxValue, float.MaxValue));
             ImGui.SetNextWindowBgAlpha(0.6f);
 
             var targetName = GetTargetName();
