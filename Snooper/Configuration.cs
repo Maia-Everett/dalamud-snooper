@@ -79,6 +79,7 @@ namespace Snooper
         public int Version { get; set; } = 0;
         public float Opacity { get; set; } = 0.6f;
         public float FontScale { get; set; } = 1.0f;
+        public bool ShowTimestamps { get; set; } = false;
         public ISet<XivChatType> AllowedChatTypes { get; set; } = new HashSet<XivChatType>(AllAllowedChatTypes);
         public IDictionary<XivChatType, uint> ChatColors = new Dictionary<XivChatType, uint>(DefaultChatColors);
     }

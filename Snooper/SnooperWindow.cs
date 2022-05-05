@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
+using Dalamud.Interface;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -74,8 +75,8 @@ namespace Snooper
                 return;
             }
 
-            ImGui.SetNextWindowSize(new Vector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowSizeConstraints(new Vector2(150, 100), new Vector2(float.MaxValue, float.MaxValue));
+            ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSizeConstraints(ImGuiHelpers.ScaledVector2(80, 80), new Vector2(float.MaxValue, float.MaxValue));
             ImGui.SetNextWindowBgAlpha(configuration.Opacity);
 
             var targetName = GetTargetName();
@@ -92,7 +93,7 @@ namespace Snooper
 
                     foreach (var entry in chatLog.Get(targetName))
                     {
-                        ShowMessage(targetName, entry.Message, entry.Type);
+                        ShowMessage(targetName, entry);
                     }
 
                     DateTime? chatUpdateTime = log.Last != null ? log.Last.Value.Time : null;
@@ -124,15 +125,19 @@ namespace Snooper
             return target.Name.ToString();
         }
 
-        private void ShowMessage(string sender, string message, XivChatType type)
+        private void ShowMessage(string sender, ChatEntry entry)
         {
+            var type = entry.Type;
+
             if (!configuration.AllowedChatTypes.Contains(type))
             {
                 return;
             }
 
+            var prefix = configuration.ShowTimestamps ? string.Format("[{0}] ", entry.Time.ToShortTimeString()) : "";
+
             ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
-            ImGui.TextWrapped(string.Format(formats[type], sender, message));
+            ImGui.TextWrapped(prefix + string.Format(formats[type], sender, entry.Message));
             ImGui.PopStyleColor();
         }
     }

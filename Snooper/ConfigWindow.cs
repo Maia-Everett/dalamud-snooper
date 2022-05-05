@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
+using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Plugin;
 using ImGuiNET;
@@ -52,6 +53,7 @@ namespace Snooper
 
             internal float opacity;
             internal float fontScale;
+            internal bool showTimestamps;
             internal IList<ChannelEntry> channels;
 
             internal LocalConfiguration(Configuration configuration)
@@ -59,6 +61,7 @@ namespace Snooper
                 this.configuration = configuration;
                 opacity = configuration.Opacity;
                 fontScale = configuration.FontScale;
+                showTimestamps = configuration.ShowTimestamps;
 
                 channels = new List<ChannelEntry>
                 {
@@ -97,18 +100,20 @@ namespace Snooper
                 return obj is LocalConfiguration other &&
                        opacity == other.opacity &&
                        fontScale == other.fontScale &&
+                       showTimestamps == other.showTimestamps &&
                        channels.Equals(other.channels);
             }
 
             public override int GetHashCode()
             {
-                return HashCode.Combine(opacity, fontScale, channels);
+                return HashCode.Combine(opacity, fontScale, showTimestamps, channels);
             }
 
             internal void Save()
             {
                 configuration.Opacity = opacity;
                 configuration.FontScale = fontScale;
+                configuration.ShowTimestamps = showTimestamps;
 
                 foreach (var channel in channels)
                 {
@@ -156,8 +161,8 @@ namespace Snooper
             }
         }
 
-        private const int DefaultWidth = 650;
-        private const int DefaultHeight = 300;
+        private const int DefaultWidth = 450;
+        private const int DefaultHeight = 380;
 
         private readonly Configuration configuration;
         private readonly DalamudPluginInterface pluginInterface;
@@ -191,8 +196,8 @@ namespace Snooper
 
             var localConfig = new LocalConfiguration(configuration);
 
-            ImGui.SetNextWindowSize(new Vector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowSizeConstraints(new Vector2(150, 100), new Vector2(float.MaxValue, float.MaxValue));
+            ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSizeConstraints(ImGuiHelpers.ScaledVector2(150, 100), new Vector2(float.MaxValue, float.MaxValue));
             ImGui.SetNextWindowBgAlpha(0.9f);
 
             if (ImGui.Begin("Snooper Configuration", ref this.visible))
@@ -201,8 +206,9 @@ namespace Snooper
 
                 ImGui.SliderFloat("Window opacity", ref localConfig.opacity, 0, 1);
                 ImGui.SliderFloat("Font scale", ref localConfig.fontScale, 0.5f, 3);
+                ImGui.Checkbox("Show timestamps", ref localConfig.showTimestamps);
 
-                ImGui.Dummy(new Vector2(0, 8));
+                ImGuiHelpers.ScaledDummy(new Vector2(0, 8));
 
                 ImGui.Text("Show channels:");
 
@@ -210,7 +216,7 @@ namespace Snooper
                 {
                     ImGui.Checkbox("##enable_" + channel.name, ref channel.enabled);
                     ImGui.SameLine();
-                    ImGui.Dummy(new Vector2(8, 0));
+                    ImGuiHelpers.ScaledDummy(new Vector2(4, 0));
                     ImGui.SameLine();
                     ImGui.ColorEdit3("##color_" + channel.name, ref channel.color, ImGuiColorEditFlags.NoInputs);
                     ImGui.SameLine();
@@ -221,7 +227,7 @@ namespace Snooper
                     }
 
                     ImGui.SameLine();
-                    ImGui.Dummy(new Vector2(8, 0));
+                    ImGuiHelpers.ScaledDummy(new Vector2(4, 0));
                     ImGui.SameLine();
                     ImGui.Text(channel.name);
                 }
@@ -236,7 +242,7 @@ namespace Snooper
 
                 // Close button
 
-                ImGui.Dummy(new Vector2(0, 8));
+                ImGuiHelpers.ScaledDummy(new Vector2(0, 8));
 
                 if (ImGui.Button("Close"))
                 {
