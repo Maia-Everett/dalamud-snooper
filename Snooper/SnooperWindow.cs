@@ -60,7 +60,8 @@ namespace Snooper
         }
 
         // passing in the image here just for simplicity
-        public SnooperWindow(Configuration configuration, TargetManager targetManager, ChatLog chatLog, DalamudPluginInterface pluginInterface)
+        public SnooperWindow(Configuration configuration, TargetManager targetManager, ChatLog chatLog,
+            DalamudPluginInterface pluginInterface)
         {
             this.configuration = configuration;
             this.targetManager = targetManager;
