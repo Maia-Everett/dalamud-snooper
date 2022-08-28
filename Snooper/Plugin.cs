@@ -21,6 +21,7 @@ namespace Snooper
         private readonly ConfigWindow configWindow;
         private readonly ChatListener chatListener;
         private readonly Configuration configuration;
+        private readonly PluginState pluginState;
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -31,13 +32,14 @@ namespace Snooper
             [RequiredVersion("1.0")] SigScanner sigScanner)
         {
             configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            pluginState = new PluginState();
 
             var chatLog = new ChatLog();
 
             this.commandManager = commandManager;
-            snooperWindow = new SnooperWindow(configuration, targetManager, chatLog, pluginInterface);
+            snooperWindow = new SnooperWindow(configuration, pluginState, targetManager, chatLog, pluginInterface);
             configWindow = new ConfigWindow(configuration, pluginInterface);
-            chatListener = new ChatListener(configuration, clientState, chatGui, chatLog, targetManager, sigScanner);
+            chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, sigScanner);
 
             this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
@@ -58,7 +60,7 @@ namespace Snooper
         private void OnCommand(string command, string args)
         {
             // in response to the slash command, just display our main UI
-            configuration.Visible = true;
+            pluginState.Visible = true;
         }
 
         private void DrawUI()

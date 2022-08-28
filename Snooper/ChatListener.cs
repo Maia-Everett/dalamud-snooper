@@ -18,16 +18,18 @@ namespace Snooper
     internal class ChatListener: IDisposable
     {
         private readonly Configuration configuration;
+        private readonly PluginState pluginState;
         private readonly ChatGui chatGui;
         private readonly ChatLog chatLog;
         private readonly ClientState clientState;
         private readonly TargetManager targetManager;
         private readonly PlaySound playSound;
 
-        internal ChatListener(Configuration configuration, ClientState clientState, ChatGui chatGui, ChatLog chatLog,
-            TargetManager targetManager, SigScanner sigScanner)
+        internal ChatListener(Configuration configuration, PluginState pluginState, ClientState clientState,
+            ChatGui chatGui, ChatLog chatLog, TargetManager targetManager, SigScanner sigScanner)
         {
             this.configuration = configuration;
+            this.pluginState = pluginState;
             this.clientState = clientState;
             this.chatGui = chatGui;
             this.chatLog = chatLog;
@@ -64,7 +66,7 @@ namespace Snooper
                 chatLog.Add(playerName, new Snooper.ChatEntry(playerName, message.ToString(), type, DateTime.Now));
 
                 // Play alert if enabled and the message came from the target
-                if (configuration.SoundAlerts && configuration.Visible && type != XivChatType.TellIncoming)
+                if (configuration.SoundAlerts && pluginState.Visible && type != XivChatType.TellIncoming)
                 {
                     var target = targetManager.Target;
 

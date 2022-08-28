@@ -87,15 +87,6 @@ namespace Snooper
         public IDictionary<uint, WindowConfiguration> Windows { get; set; } = new Dictionary<uint, WindowConfiguration>();
         public uint NextWindowId { get; set; } = 0;
 
-        [NonSerialized]
-        public bool visible = false;
-
-        public bool Visible
-        {
-            get { return this.visible; }
-            set { this.visible = value; }
-        }
-
         [Serializable]
         public class WindowConfiguration
         {

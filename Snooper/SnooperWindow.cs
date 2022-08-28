@@ -44,6 +44,7 @@ namespace Snooper
         }
 
         private readonly Configuration configuration;
+        private readonly PluginState pluginState;
         private readonly TargetManager targetManager;
         private readonly ChatLog chatLog;
         private readonly DalamudPluginInterface pluginInterface;
@@ -52,10 +53,11 @@ namespace Snooper
         private DateTime? lastChatUpdate;
 
         // passing in the image here just for simplicity
-        public SnooperWindow(Configuration configuration, TargetManager targetManager, ChatLog chatLog,
-            DalamudPluginInterface pluginInterface)
+        public SnooperWindow(Configuration configuration, PluginState pluginState, TargetManager targetManager,
+            ChatLog chatLog, DalamudPluginInterface pluginInterface)
         {
             this.configuration = configuration;
+            this.pluginState = pluginState;
             this.targetManager = targetManager;
             this.chatLog = chatLog;
             this.pluginInterface = pluginInterface;
@@ -68,7 +70,7 @@ namespace Snooper
 
         public void Draw()
         {
-            if (!configuration.visible)
+            if (!pluginState.visible)
             {
                 return;
             }
@@ -126,7 +128,7 @@ namespace Snooper
 
             if (id == null)
             {
-                visible = ImGui.Begin(windowTitle, ref configuration.visible);
+                visible = ImGui.Begin(windowTitle, ref pluginState.visible);
             }
             else
             {
