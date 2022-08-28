@@ -51,14 +51,6 @@ namespace Snooper
         private string? lastTarget;
         private DateTime? lastChatUpdate;
 
-        // this extra bool exists for ImGui, since you can't ref a property
-        private bool visible = false;
-        public bool Visible
-        {
-            get { return this.visible; }
-            set { this.visible = value; }
-        }
-
         // passing in the image here just for simplicity
         public SnooperWindow(Configuration configuration, TargetManager targetManager, ChatLog chatLog,
             DalamudPluginInterface pluginInterface)
@@ -76,7 +68,7 @@ namespace Snooper
 
         public void Draw()
         {
-            if (!Visible)
+            if (!configuration.visible)
             {
                 return;
             }
@@ -134,7 +126,7 @@ namespace Snooper
 
             if (id == null)
             {
-                visible = ImGui.Begin(windowTitle, ref this.visible);
+                visible = ImGui.Begin(windowTitle, ref configuration.visible);
             }
             else
             {

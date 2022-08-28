@@ -54,6 +54,7 @@ namespace Snooper
             internal float opacity;
             internal float fontScale;
             internal bool showTimestamps;
+            internal bool soundAlerts;
             internal int hoverMode;
             internal IList<ChannelEntry> channels;
 
@@ -63,6 +64,7 @@ namespace Snooper
                 opacity = configuration.Opacity;
                 fontScale = configuration.FontScale;
                 showTimestamps = configuration.ShowTimestamps;
+                soundAlerts = configuration.SoundAlerts;
                 hoverMode = Convert.ToInt32(configuration.HoverMode);
 
                 channels = new List<ChannelEntry>
@@ -116,6 +118,7 @@ namespace Snooper
                 configuration.Opacity = opacity;
                 configuration.FontScale = fontScale;
                 configuration.ShowTimestamps = showTimestamps;
+                configuration.SoundAlerts = soundAlerts;
                 configuration.HoverMode = Convert.ToBoolean(hoverMode);
 
                 foreach (var channel in channels)
@@ -210,6 +213,7 @@ namespace Snooper
                 ImGui.SliderFloat("Window opacity", ref localConfig.opacity, 0, 1);
                 ImGui.SliderFloat("Font scale", ref localConfig.fontScale, 0.5f, 3);
                 ImGui.Checkbox("Show timestamps", ref localConfig.showTimestamps);
+                ImGui.Checkbox("Play a sound when your target posts a message", ref localConfig.soundAlerts);
 
                 ImGui.Text("Show player chat log on");
                 ImGui.SameLine();

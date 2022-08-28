@@ -1,8 +1,12 @@
-﻿using Dalamud.Game.ClientState;
+﻿using Dalamud.Game;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Snooper.SeFunctions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,14 +21,19 @@ namespace Snooper
         private readonly ChatGui chatGui;
         private readonly ChatLog chatLog;
         private readonly ClientState clientState;
+        private readonly TargetManager targetManager;
+        private readonly PlaySound playSound;
 
-        internal ChatListener(Configuration configuration, ClientState clientState, ChatGui chatGui, ChatLog chatLog)
+        internal ChatListener(Configuration configuration, ClientState clientState, ChatGui chatGui, ChatLog chatLog,
+            TargetManager targetManager, SigScanner sigScanner)
         {
             this.configuration = configuration;
             this.clientState = clientState;
             this.chatGui = chatGui;
             this.chatLog = chatLog;
+            this.targetManager = targetManager;
             chatGui.ChatMessage += OnChatMessage;
+            playSound = new PlaySound(sigScanner);
         }
 
         public void Dispose()
@@ -53,6 +62,19 @@ namespace Snooper
                 var playerName = playerPayload != null ? playerPayload.PlayerName : sender.ToString();
 
                 chatLog.Add(playerName, new Snooper.ChatEntry(playerName, message.ToString(), type, DateTime.Now));
+
+                // Play alert if enabled and the message came from the target
+                if (configuration.SoundAlerts && configuration.Visible && type != XivChatType.TellIncoming)
+                {
+                    var target = targetManager.Target;
+
+                    if (target != null
+                        && target.ObjectKind == ObjectKind.Player
+                        && target.Name.ToString() == playerName)
+                    {
+                        playSound.Play(Sounds.Sound16);
+                    }
+                }
             }
         }
     }
