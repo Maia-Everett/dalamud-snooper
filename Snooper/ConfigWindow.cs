@@ -7,6 +7,7 @@ using Dalamud.Plugin;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace Snooper
@@ -261,6 +262,22 @@ namespace Snooper
                 {
                     visible = false;
                 }
+
+                // Donation button
+                var donationText = "Buy Vielle a tea";
+                var buttonWidth = ImGuiHelpers.GetButtonSize(donationText).X;
+
+                ImGui.SameLine(ImGui.GetWindowWidth() - buttonWidth - ImGuiHelpers.ScaledVector2(6, 0).X);
+                ImGui.PushStyleColor(ImGuiCol.Button, 0xFF000000 | 0x005E5BFF);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0xDD000000 | 0x005E5BFF);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xAA000000 | 0x005E5BFF);
+
+                if (ImGui.Button(donationText))
+                {
+                    Process.Start(new ProcessStartInfo { FileName = "https://ko-fi.com/vielle_janlenoux", UseShellExecute = true });
+                }
+
+                ImGui.PopStyleColor(3);
             }
 
             ImGui.End();
