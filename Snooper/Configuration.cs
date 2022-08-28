@@ -80,7 +80,22 @@ namespace Snooper
         public float Opacity { get; set; } = 0.6f;
         public float FontScale { get; set; } = 1.0f;
         public bool ShowTimestamps { get; set; } = false;
+        public bool HoverMode { get; set; } = true;
         public ISet<XivChatType> AllowedChatTypes { get; set; } = new HashSet<XivChatType>(AllAllowedChatTypes);
         public IDictionary<XivChatType, uint> ChatColors { get; set; } = new Dictionary<XivChatType, uint>(DefaultChatColors);
+        public IDictionary<uint, WindowConfiguration> Windows { get; set; } = new Dictionary<uint, WindowConfiguration>();
+        public uint NextWindowId { get; set; } = 0;
+
+        [Serializable]
+        public class WindowConfiguration
+        {
+            public ISet<string> PlayerNames { get; set; } = new SortedSet<string>();
+
+            [NonSerialized]
+            public DateTime? lastUpdate = null;
+
+            [NonSerialized]
+            public bool visible = true;
+        }
     }
 }

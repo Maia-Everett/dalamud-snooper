@@ -31,7 +31,7 @@ namespace Snooper
             var configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
             this.commandManager = commandManager;
-            snooperWindow = new SnooperWindow(configuration, targetManager, chatLog);
+            snooperWindow = new SnooperWindow(configuration, targetManager, chatLog, pluginInterface);
             configWindow = new ConfigWindow(configuration, pluginInterface);
             chatListener = new ChatListener(configuration, clientState, chatGui, chatLog);
 

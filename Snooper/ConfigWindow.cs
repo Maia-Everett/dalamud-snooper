@@ -54,6 +54,7 @@ namespace Snooper
             internal float opacity;
             internal float fontScale;
             internal bool showTimestamps;
+            internal int hoverMode;
             internal IList<ChannelEntry> channels;
 
             internal LocalConfiguration(Configuration configuration)
@@ -62,6 +63,7 @@ namespace Snooper
                 opacity = configuration.Opacity;
                 fontScale = configuration.FontScale;
                 showTimestamps = configuration.ShowTimestamps;
+                hoverMode = Convert.ToInt32(configuration.HoverMode);
 
                 channels = new List<ChannelEntry>
                 {
@@ -114,6 +116,7 @@ namespace Snooper
                 configuration.Opacity = opacity;
                 configuration.FontScale = fontScale;
                 configuration.ShowTimestamps = showTimestamps;
+                configuration.HoverMode = Convert.ToBoolean(hoverMode);
 
                 foreach (var channel in channels)
                 {
@@ -207,6 +210,12 @@ namespace Snooper
                 ImGui.SliderFloat("Window opacity", ref localConfig.opacity, 0, 1);
                 ImGui.SliderFloat("Font scale", ref localConfig.fontScale, 0.5f, 3);
                 ImGui.Checkbox("Show timestamps", ref localConfig.showTimestamps);
+
+                ImGui.Text("Show player chat log on");
+                ImGui.SameLine();
+                ImGui.RadioButton("Click", ref localConfig.hoverMode, 0);
+                ImGui.SameLine();
+                ImGui.RadioButton("Mouse over", ref localConfig.hoverMode, 1);
 
                 ImGuiHelpers.ScaledDummy(new Vector2(0, 8));
 

@@ -52,7 +52,7 @@ namespace Snooper
 
                 var playerName = playerPayload != null ? playerPayload.PlayerName : sender.ToString();
 
-                chatLog.Add(playerName, new Snooper.ChatEntry(message.ToString(), type, DateTime.Now));
+                chatLog.Add(playerName, new Snooper.ChatEntry(playerName, message.ToString(), type, DateTime.Now));
             }
         }
     }

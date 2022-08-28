@@ -1,11 +1,14 @@
 ﻿using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Interface;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Linq;
+using Dalamud.Plugin;
 
 namespace Snooper
 {
@@ -43,6 +46,7 @@ namespace Snooper
         private readonly Configuration configuration;
         private readonly TargetManager targetManager;
         private readonly ChatLog chatLog;
+        private readonly DalamudPluginInterface pluginInterface;
 
         private string? lastTarget;
         private DateTime? lastChatUpdate;
@@ -56,11 +60,12 @@ namespace Snooper
         }
 
         // passing in the image here just for simplicity
-        public SnooperWindow(Configuration configuration, TargetManager targetManager, ChatLog chatLog)
+        public SnooperWindow(Configuration configuration, TargetManager targetManager, ChatLog chatLog, DalamudPluginInterface pluginInterface)
         {
             this.configuration = configuration;
             this.targetManager = targetManager;
             this.chatLog = chatLog;
+            this.pluginInterface = pluginInterface;
         }
 
         public void Dispose()
@@ -69,53 +74,160 @@ namespace Snooper
         }
 
         public void Draw()
-        {            
+        {
             if (!Visible)
             {
                 return;
             }
 
+            DrawWindow(null);
+
+            var windowIds = new List<uint>(configuration.Windows.Keys);
+
+            foreach (var id in windowIds)
+            {
+                Configuration.WindowConfiguration? windowConfig = configuration.Windows[(uint)id];
+
+                if (windowConfig != null)
+                {
+                    if (windowConfig.visible)
+                    {
+                        DrawWindow(id);
+                    }
+                    else
+                    {
+                        configuration.Windows.Remove((uint)id);
+                        pluginInterface.SavePluginConfig(configuration);
+                    }
+                }
+            }
+        }
+
+        private void DrawWindow(uint? id)
+        {
+            Configuration.WindowConfiguration? windowConfig = id == null ? null : configuration.Windows[(uint) id];
+
             ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowSizeConstraints(ImGuiHelpers.ScaledVector2(80, 80), new Vector2(float.MaxValue, float.MaxValue));
             ImGui.SetNextWindowBgAlpha(configuration.Opacity);
 
-            var targetName = GetTargetName();
-            // Window title changes, but the part after the ### is the unique identifier so window position stays constant
-            var windowTitle = "Snooper: " + (targetName ?? "(No target player)") + "###Snooper";
+            ICollection<string> playerNames;
+            string? targetName;
 
-            if (ImGui.Begin(windowTitle, ref this.visible))
+            if (windowConfig == null)
+            {
+                targetName = GetTargetName(configuration.HoverMode);
+                playerNames = targetName == null ? Array.Empty<string>() : new string[] { targetName };
+            }
+            else
+            {
+                targetName = GetTargetName(false);
+                playerNames = windowConfig.PlayerNames;
+            }
+
+            // Window title changes, but the part after the ### is the unique identifier so window position stays constant
+            var playerNamesString = playerNames.Count == 0 ? "(No target player)" : string.Join(", ", playerNames);
+            var windowTitle = string.Format("Snooper{0}: {1}###Snooper{2}", id == null ? "" : "*", playerNamesString, id == null ? "" : id);
+
+            bool visible;
+
+            if (id == null)
+            {
+                visible = ImGui.Begin(windowTitle, ref this.visible);
+            }
+            else
+            {
+                visible = ImGui.Begin(windowTitle, ref windowConfig!.visible);
+            }
+
+            if (visible)
             {
                 ImGui.SetWindowFontScale(configuration.FontScale);
+                ImGui.BeginChild("ScrollRegion", ImGuiHelpers.ScaledVector2(0, -32));
 
-                if (targetName != null)
+                if (playerNames.Count > 0)
                 {
-                    var log = chatLog.Get(targetName);
+                    var log = chatLog.Get(playerNames);
 
-                    foreach (var entry in chatLog.Get(targetName))
+                    foreach (var entry in log)
                     {
-                        ShowMessage(targetName, entry);
+                        ShowMessage(entry);
                     }
 
                     DateTime? chatUpdateTime = log.Last != null ? log.Last.Value.Time : null;
 
-                    if (targetName != lastTarget || chatUpdateTime != lastChatUpdate)
+                    if (id == null)
                     {
-                        ImGui.SetScrollHereY(1);
-                    }
+                        if (targetName != lastTarget || chatUpdateTime != lastChatUpdate)
+                        {
+                            ImGui.SetScrollHereY(1);
+                        }
 
-                    lastChatUpdate = chatUpdateTime;
+                        lastChatUpdate = chatUpdateTime;
+                    }
+                    else
+                    {
+                        if (chatUpdateTime != windowConfig!.lastUpdate)
+                        {
+                            ImGui.SetScrollHereY(1);
+                        }
+
+                        windowConfig!.lastUpdate = chatUpdateTime;
+                    }
+                }
+
+                ImGui.EndChild();
+                ImGuiHelpers.ScaledDummy(ImGuiHelpers.ScaledVector2(0, 3));
+
+                if (id == null && playerNames.Count > 0)
+                {
+                    if (ImGui.Button("New window for this target"))
+                    {
+                        var newWindowConfig = new Configuration.WindowConfiguration
+                        {
+                            PlayerNames = new SortedSet<string>(playerNames)
+                        };
+                        configuration.Windows.Add(configuration.NextWindowId, newWindowConfig);
+                        configuration.NextWindowId++;
+                        pluginInterface.SavePluginConfig(configuration);
+                    }
+                }
+                else if (id != null && targetName != null && !playerNames.Contains(targetName))
+                {
+                    if (ImGui.Button("Add target to this window"))
+                    {
+                        playerNames.Add(targetName);
+                        pluginInterface.SavePluginConfig(configuration);
+                    }
                 }
 
                 ImGui.SetWindowFontScale(1);
             }
             ImGui.End();
 
-            lastTarget = targetName;
+            if (id == null)
+            {
+                lastTarget = playerNames.Count == 0 ? null : targetName;
+            }
         }
 
-        private string? GetTargetName()
+        private string? GetTargetName(bool useMouseOver)
         {
-            var target = targetManager.Target;
+            GameObject? target = null;
+
+            if (!useMouseOver)
+            {
+                target = targetManager.Target;
+            }
+            else
+            {
+                target = targetManager.MouseOverTarget;
+
+                if (target == null || target.ObjectKind != ObjectKind.Player)
+                {
+                    target = targetManager.Target;
+                }
+            }
 
             if (target == null || target.ObjectKind != ObjectKind.Player)
             {
@@ -125,8 +237,9 @@ namespace Snooper
             return target.Name.ToString();
         }
 
-        private void ShowMessage(string sender, ChatEntry entry)
+        private void ShowMessage(ChatEntry entry)
         {
+            var sender = entry.Sender;
             var type = entry.Type;
 
             if (!configuration.AllowedChatTypes.Contains(type))
