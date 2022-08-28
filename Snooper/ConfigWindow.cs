@@ -169,7 +169,7 @@ namespace Snooper
         }
 
         private const int DefaultWidth = 450;
-        private const int DefaultHeight = 380;
+        private const int DefaultHeight = 420;
 
         private readonly Configuration configuration;
         private readonly DalamudPluginInterface pluginInterface;
