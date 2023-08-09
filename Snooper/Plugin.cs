@@ -44,7 +44,7 @@ namespace Snooper
             this.commandManager = commandManager;
             this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
-                HelpMessage = "Shows the Snooper window."
+                HelpMessage = "Toggles the Snooper window."
             });
 
             pluginInterface.UiBuilder.Draw += DrawUI;
