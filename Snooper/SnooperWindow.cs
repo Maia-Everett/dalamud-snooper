@@ -53,6 +53,7 @@ namespace Snooper
 
         private string? lastTarget;
         private DateTime? lastChatUpdate;
+        private string filterText = "";
 
         // passing in the image here just for simplicity
         public SnooperWindow(Configuration configuration, ClientState clientState, PluginState pluginState, TargetManager targetManager,
@@ -145,6 +146,40 @@ namespace Snooper
 
             if (visible)
             {
+                if (id == null && playerNames.Count > 0)
+                {
+                    if (ImGui.Button("+"))
+                    {
+                        var newWindowConfig = new Configuration.WindowConfiguration
+                        {
+                            PlayerNames = new SortedSet<string>(playerNames)
+                        };
+                        configuration.Windows.Add(configuration.NextWindowId, newWindowConfig);
+                        configuration.NextWindowId++;
+                        pluginInterface.SavePluginConfig(configuration);
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Opens a new snooper window for current target.");
+                        ImGui.EndTooltip();
+                    }
+                }
+                else if (id != null && targetName != null && !playerNames.Contains(targetName))
+                {
+                    if (ImGui.Button("Add target: " + targetName))
+                    {
+                        playerNames.Add(targetName);
+                        pluginInterface.SavePluginConfig(configuration);
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Adds target to the current snooper window");
+                        ImGui.EndTooltip();
+                    }
+                }
+                
                 ImGui.SetWindowFontScale(configuration.FontScale);
                 ImGui.BeginChild("ScrollRegion", ImGuiHelpers.ScaledVector2(0, -32));
 
@@ -182,30 +217,14 @@ namespace Snooper
                 ImGui.EndChild();
                 ImGuiHelpers.ScaledDummy(ImGuiHelpers.ScaledVector2(0, 3));
 
-                if (id == null && playerNames.Count > 0)
+                if (configuration.EnableFilter)
                 {
-                    if (ImGui.Button("New window for this target"))
-                    {
-                        var newWindowConfig = new Configuration.WindowConfiguration
-                        {
-                            PlayerNames = new SortedSet<string>(playerNames)
-                        };
-                        configuration.Windows.Add(configuration.NextWindowId, newWindowConfig);
-                        configuration.NextWindowId++;
-                        pluginInterface.SavePluginConfig(configuration);
-                    }
+                    ImGui.InputText("Filter Messages", ref filterText, 100);
                 }
-                else if (id != null && targetName != null && !playerNames.Contains(targetName))
-                {
-                    if (ImGui.Button("Add target to this window"))
-                    {
-                        playerNames.Add(targetName);
-                        pluginInterface.SavePluginConfig(configuration);
-                    }
-                }
-
+            
                 ImGui.SetWindowFontScale(1);
             }
+            
             ImGui.End();
 
             if (id == null)
@@ -251,10 +270,58 @@ namespace Snooper
             }
 
             var prefix = configuration.ShowTimestamps ? string.Format("[{0}] ", entry.Time.ToShortTimeString()) : "";
+            var content = string.Format(formats[type], sender, entry.Message);
+            
+            if (string.IsNullOrEmpty(filterText))
+            {
+                // Display the entire content if no filter is applied
+                ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
+                ImGui.TextWrapped(prefix + content);
+                ImGui.PopStyleColor();
+            }
+            else
+            {
+                var highlightColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);  // Bright red;
+                int startIndex = 0;
+                int matchIndex;
+                bool isFirst = true;
 
-            ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
-            ImGui.TextWrapped(prefix + string.Format(formats[type], sender, entry.Message));
-            ImGui.PopStyleColor();
+                ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
+                
+                while ((matchIndex = content.IndexOf(filterText, startIndex, StringComparison.OrdinalIgnoreCase)) != -1)
+                {
+                    // Display content before the match
+                    var beforeMatch = content.Substring(startIndex, matchIndex - startIndex);
+                    if (isFirst)
+                    {
+                        ImGui.TextUnformatted(beforeMatch);
+                        isFirst = false;
+                    }
+                    else
+                    {
+                        ImGui.SameLine(); // Only use SameLine for first match
+                        ImGui.TextUnformatted(beforeMatch);
+                    }
+
+                    // Highlight
+                    ImGui.SameLine();
+                    ImGui.PushStyleColor(ImGuiCol.Text, highlightColor);
+                    ImGui.TextUnformatted(filterText.Trim());
+                    ImGui.PopStyleColor();
+
+                    // Move the starting point for the next search after this match
+                    startIndex = matchIndex + filterText.Length;
+                }
+
+                // Display any content after the last match
+                if (startIndex < content.Length)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextUnformatted(content.Substring(startIndex));
+                }
+
+                ImGui.PopStyleColor();
+            }
         }
     }
 

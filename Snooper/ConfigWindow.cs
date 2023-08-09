@@ -54,6 +54,7 @@ namespace Snooper
 
             internal float opacity;
             internal float fontScale;
+            internal bool enableFilter;
             internal bool showOnStart;
             internal bool showTimestamps;
             internal bool soundAlerts;
@@ -65,6 +66,7 @@ namespace Snooper
                 this.configuration = configuration;
                 opacity = configuration.Opacity;
                 fontScale = configuration.FontScale;
+                enableFilter = configuration.EnableFilter;
                 showOnStart = configuration.ShowOnStart;
                 showTimestamps = configuration.ShowTimestamps;
                 soundAlerts = configuration.SoundAlerts;
@@ -120,6 +122,7 @@ namespace Snooper
             {
                 configuration.Opacity = opacity;
                 configuration.FontScale = fontScale;
+                configuration.EnableFilter = enableFilter;
                 configuration.ShowOnStart = showOnStart;
                 configuration.ShowTimestamps = showTimestamps;
                 configuration.SoundAlerts = soundAlerts;
@@ -216,6 +219,7 @@ namespace Snooper
 
                 ImGui.SliderFloat("Window opacity", ref localConfig.opacity, 0, 1);
                 ImGui.SliderFloat("Font scale", ref localConfig.fontScale, 0.5f, 3);
+                ImGui.Checkbox("Display filter box", ref localConfig.enableFilter);
                 ImGui.Checkbox("Show timestamps", ref localConfig.showTimestamps);
                 ImGui.Checkbox("Show on start", ref localConfig.showOnStart);
                 ImGui.Checkbox("Play a sound when your target posts a message", ref localConfig.soundAlerts);
