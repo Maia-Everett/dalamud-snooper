@@ -60,8 +60,8 @@ namespace Snooper
 
         private void OnCommand(string command, string args)
         {
-            // in response to the slash command, just display our main UI
-            pluginState.Visible ^= true;
+            // in response to the slash command, toggle snooper window
+            pluginState.Visible = !pluginState.Visible;
         }
 
         private void DrawUI()
