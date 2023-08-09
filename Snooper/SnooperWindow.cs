@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Linq;
+using Dalamud.Game.ClientState;
 using Dalamud.Plugin;
 
 namespace Snooper
@@ -44,6 +45,7 @@ namespace Snooper
         }
 
         private readonly Configuration configuration;
+        private readonly ClientState clientState;
         private readonly PluginState pluginState;
         private readonly TargetManager targetManager;
         private readonly ChatLog chatLog;
@@ -53,10 +55,11 @@ namespace Snooper
         private DateTime? lastChatUpdate;
 
         // passing in the image here just for simplicity
-        public SnooperWindow(Configuration configuration, PluginState pluginState, TargetManager targetManager,
+        public SnooperWindow(Configuration configuration, ClientState clientState, PluginState pluginState, TargetManager targetManager,
             ChatLog chatLog, DalamudPluginInterface pluginInterface)
         {
             this.configuration = configuration;
+            this.clientState = clientState;
             this.pluginState = pluginState;
             this.targetManager = targetManager;
             this.chatLog = chatLog;
@@ -73,6 +76,11 @@ namespace Snooper
             if (!pluginState.visible)
             {
                 return;
+            }
+
+            if (clientState.LocalPlayer == null)
+            {
+                return; // only draw if logged in
             }
 
             DrawWindow(null);
