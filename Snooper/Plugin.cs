@@ -32,18 +32,19 @@ namespace Snooper
             [RequiredVersion("1.0")] SigScanner sigScanner)
         {
             configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            
             pluginState = new PluginState();
+            pluginState.Visible = configuration.ShowOnStart;
 
             var chatLog = new ChatLog();
-
-            this.commandManager = commandManager;
-            snooperWindow = new SnooperWindow(configuration, pluginState, targetManager, chatLog, pluginInterface);
+            snooperWindow = new SnooperWindow(configuration, clientState, pluginState, targetManager, chatLog, pluginInterface);
             configWindow = new ConfigWindow(configuration, pluginInterface);
             chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, sigScanner);
 
+            this.commandManager = commandManager;
             this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
-                HelpMessage = "Shows the Snooper window."
+                HelpMessage = "Toggles the Snooper window."
             });
 
             pluginInterface.UiBuilder.Draw += DrawUI;
@@ -59,8 +60,8 @@ namespace Snooper
 
         private void OnCommand(string command, string args)
         {
-            // in response to the slash command, just display our main UI
-            pluginState.Visible = true;
+            // in response to the slash command, toggle snooper window
+            pluginState.Visible = !pluginState.Visible;
         }
 
         private void DrawUI()
