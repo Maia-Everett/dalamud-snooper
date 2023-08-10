@@ -279,14 +279,15 @@ namespace Snooper
                 ImGui.TextWrapped(prefix + content);
                 ImGui.PopStyleColor();
             }
-            else
+            else if (content.Contains(filterText))
             {
-                var highlightColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);  // Bright red;
+                var highlightColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); // Bright red;
                 int startIndex = 0;
                 int matchIndex;
                 bool isFirst = true;
 
                 ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 1)); // Attempts to get rid of text item spacing
                 
                 while ((matchIndex = content.IndexOf(filterText, startIndex, StringComparison.OrdinalIgnoreCase)) != -1)
                 {
@@ -294,33 +295,35 @@ namespace Snooper
                     var beforeMatch = content.Substring(startIndex, matchIndex - startIndex);
                     if (isFirst)
                     {
-                        ImGui.TextUnformatted(beforeMatch);
+                        ImGui.Text(beforeMatch);
                         isFirst = false;
                     }
                     else
                     {
-                        ImGui.SameLine(); // Only use SameLine for first match
-                        ImGui.TextUnformatted(beforeMatch);
+                        ImGui.SameLine(); // Same line after first
+                        ImGui.Text(beforeMatch);
                     }
 
                     // Highlight
                     ImGui.SameLine();
                     ImGui.PushStyleColor(ImGuiCol.Text, highlightColor);
-                    ImGui.TextUnformatted(filterText.Trim());
+                    ImGui.Text(filterText);
                     ImGui.PopStyleColor();
 
                     // Move the starting point for the next search after this match
                     startIndex = matchIndex + filterText.Length;
                 }
+                
 
                 // Display any content after the last match
                 if (startIndex < content.Length)
                 {
                     ImGui.SameLine();
-                    ImGui.TextUnformatted(content.Substring(startIndex));
+                    ImGui.Text(content.Substring(startIndex));
                 }
 
                 ImGui.PopStyleColor();
+                ImGui.PopStyleVar();
             }
         }
     }
