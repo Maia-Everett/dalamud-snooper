@@ -268,22 +268,25 @@ namespace Snooper
             var prefix = configuration.ShowTimestamps ? string.Format("[{0}] ", entry.Time.ToShortTimeString()) : "";
             var content = string.Format(formats[type], sender, entry.Message);
             
+            ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
+            
             if (string.IsNullOrEmpty(filterText))
             {
                 // Display the entire content if no filter is applied
-                ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
-                ImGui.TextWrapped(prefix + content);
-                ImGui.PopStyleColor();
+                float wrapWidth = ImGui.GetContentRegionAvail().X;
+                ImGui.PushTextWrapPos(wrapWidth);
+                ImGui.TextUnformatted(prefix + content);
+                ImGui.PopTextWrapPos();
             }
-            else if (content.Contains(filterText))
+            else if (content.Contains(filterText)) // TODO: Dynamic text wrapping on filter (I gave up)
             {
-                var highlightColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); // Bright red;
-                int startIndex = 0;
                 int matchIndex;
+                int startIndex = 0;
                 bool isFirst = true;
+                var highlightColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); // Bright red;
 
-                ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
-                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 1)); // Attempts to get rid of text item spacing
+                // Attempts to get rid of text item spacing
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 1)); 
                 
                 while ((matchIndex = content.IndexOf(filterText, startIndex, StringComparison.OrdinalIgnoreCase)) != -1)
                 {
@@ -297,10 +300,10 @@ namespace Snooper
                     else
                     {
                         ImGui.SameLine(); // Same line after first
-                        ImGui.Text(beforeMatch);
+                        ImGui.TextUnformatted(beforeMatch);
                     }
+                    
 
-                    // Highlight
                     ImGui.SameLine();
                     ImGui.PushStyleColor(ImGuiCol.Text, highlightColor);
                     ImGui.TextUnformatted(filterText);
@@ -318,9 +321,10 @@ namespace Snooper
                     ImGui.TextUnformatted(content.Substring(startIndex));
                 }
 
-                ImGui.PopStyleColor();
                 ImGui.PopStyleVar();
             }
+            
+            ImGui.PopStyleColor();
         }
     }
 
