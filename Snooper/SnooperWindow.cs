@@ -191,25 +191,21 @@ namespace Snooper
                     {
                         ShowMessage(entry);
                     }
+                    
+                    DateTime? chatUpdateTime = log.Last?.Value.Time;
+                    DateTime? currentLastUpdate = id == null ? lastChatUpdate : windowConfig!.lastUpdate;
 
-                    DateTime? chatUpdateTime = log.Last != null ? log.Last.Value.Time : null;
+                    if (configuration.Autoscroll && chatUpdateTime != currentLastUpdate)
+                    {
+                        ImGui.SetScrollHereY(1);
+                    }
 
                     if (id == null)
                     {
-                        if (targetName != lastTarget || chatUpdateTime != lastChatUpdate)
-                        {
-                            ImGui.SetScrollHereY(1);
-                        }
-
                         lastChatUpdate = chatUpdateTime;
                     }
                     else
                     {
-                        if (chatUpdateTime != windowConfig!.lastUpdate)
-                        {
-                            ImGui.SetScrollHereY(1);
-                        }
-
                         windowConfig!.lastUpdate = chatUpdateTime;
                     }
                 }
@@ -295,7 +291,7 @@ namespace Snooper
                     var beforeMatch = content.Substring(startIndex, matchIndex - startIndex);
                     if (isFirst)
                     {
-                        ImGui.Text(beforeMatch);
+                        ImGui.TextUnformatted(beforeMatch);
                         isFirst = false;
                     }
                     else
@@ -307,7 +303,7 @@ namespace Snooper
                     // Highlight
                     ImGui.SameLine();
                     ImGui.PushStyleColor(ImGuiCol.Text, highlightColor);
-                    ImGui.Text(filterText);
+                    ImGui.TextUnformatted(filterText);
                     ImGui.PopStyleColor();
 
                     // Move the starting point for the next search after this match
@@ -319,7 +315,7 @@ namespace Snooper
                 if (startIndex < content.Length)
                 {
                     ImGui.SameLine();
-                    ImGui.Text(content.Substring(startIndex));
+                    ImGui.TextUnformatted(content.Substring(startIndex));
                 }
 
                 ImGui.PopStyleColor();

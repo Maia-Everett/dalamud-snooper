@@ -58,6 +58,7 @@ namespace Snooper
             internal bool showOnStart;
             internal bool showTimestamps;
             internal bool soundAlerts;
+            internal bool autoscroll;
             internal int hoverMode;
             internal IList<ChannelEntry> channels;
 
@@ -70,6 +71,7 @@ namespace Snooper
                 showOnStart = configuration.ShowOnStart;
                 showTimestamps = configuration.ShowTimestamps;
                 soundAlerts = configuration.SoundAlerts;
+                autoscroll = configuration.Autoscroll;
                 hoverMode = Convert.ToInt32(configuration.HoverMode);
 
                 channels = new List<ChannelEntry>
@@ -126,6 +128,7 @@ namespace Snooper
                 configuration.ShowOnStart = showOnStart;
                 configuration.ShowTimestamps = showTimestamps;
                 configuration.SoundAlerts = soundAlerts;
+                configuration.Autoscroll = autoscroll;
                 configuration.HoverMode = Convert.ToBoolean(hoverMode);
 
                 foreach (var channel in channels)
@@ -222,6 +225,7 @@ namespace Snooper
                 ImGui.Checkbox("Display filter box", ref localConfig.enableFilter);
                 ImGui.Checkbox("Show timestamps", ref localConfig.showTimestamps);
                 ImGui.Checkbox("Show on start", ref localConfig.showOnStart);
+                ImGui.Checkbox("Autoscroll on new message", ref localConfig.autoscroll);
                 ImGui.Checkbox("Play a sound when your target posts a message", ref localConfig.soundAlerts);
 
                 ImGui.Text("Show player chat log on");
