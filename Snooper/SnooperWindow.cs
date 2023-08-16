@@ -84,6 +84,11 @@ namespace Snooper
                 return; // only draw if logged in
             }
 
+            if (clientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat))
+            {
+                return; // only draw if out of combat
+            }
+
             DrawWindow(null);
 
             var windowIds = new List<uint>(configuration.Windows.Keys);
