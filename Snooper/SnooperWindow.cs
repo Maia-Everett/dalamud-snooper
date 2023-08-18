@@ -84,6 +84,11 @@ namespace Snooper
                 return; // only draw if logged in
             }
 
+            if (clientState.LocalPlayer.StatusFlags.HasFlag(StatusFlags.InCombat))
+            {
+                return; // only draw if out of combat
+            }
+
             DrawWindow(null);
 
             var windowIds = new List<uint>(configuration.Windows.Keys);
@@ -191,25 +196,21 @@ namespace Snooper
                     {
                         ShowMessage(entry);
                     }
+                    
+                    DateTime? chatUpdateTime = log.Last?.Value.Time;
+                    DateTime? currentLastUpdate = id == null ? lastChatUpdate : windowConfig!.lastUpdate;
 
-                    DateTime? chatUpdateTime = log.Last != null ? log.Last.Value.Time : null;
+                    if (configuration.Autoscroll && chatUpdateTime != currentLastUpdate)
+                    {
+                        ImGui.SetScrollHereY(1);
+                    }
 
                     if (id == null)
                     {
-                        if (targetName != lastTarget || chatUpdateTime != lastChatUpdate)
-                        {
-                            ImGui.SetScrollHereY(1);
-                        }
-
                         lastChatUpdate = chatUpdateTime;
                     }
                     else
                     {
-                        if (chatUpdateTime != windowConfig!.lastUpdate)
-                        {
-                            ImGui.SetScrollHereY(1);
-                        }
-
                         windowConfig!.lastUpdate = chatUpdateTime;
                     }
                 }
@@ -272,21 +273,25 @@ namespace Snooper
             var prefix = configuration.ShowTimestamps ? string.Format("[{0}] ", entry.Time.ToShortTimeString()) : "";
             var content = string.Format(formats[type], sender, entry.Message);
             
+            ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
+            
             if (string.IsNullOrEmpty(filterText))
             {
                 // Display the entire content if no filter is applied
-                ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
-                ImGui.TextWrapped(prefix + content);
-                ImGui.PopStyleColor();
+                float wrapWidth = ImGui.GetContentRegionAvail().X;
+                ImGui.PushTextWrapPos(wrapWidth);
+                ImGui.TextUnformatted(prefix + content);
+                ImGui.PopTextWrapPos();
             }
-            else
+            else if (content.Contains(filterText)) // TODO: Dynamic text wrapping on filter (I gave up)
             {
-                var highlightColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);  // Bright red;
-                int startIndex = 0;
                 int matchIndex;
+                int startIndex = 0;
                 bool isFirst = true;
+                var highlightColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); // Bright red;
 
-                ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
+                // Attempts to get rid of text item spacing
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 1)); 
                 
                 while ((matchIndex = content.IndexOf(filterText, startIndex, StringComparison.OrdinalIgnoreCase)) != -1)
                 {
@@ -299,19 +304,20 @@ namespace Snooper
                     }
                     else
                     {
-                        ImGui.SameLine(); // Only use SameLine for first match
+                        ImGui.SameLine(); // Same line after first
                         ImGui.TextUnformatted(beforeMatch);
                     }
+                    
 
-                    // Highlight
                     ImGui.SameLine();
                     ImGui.PushStyleColor(ImGuiCol.Text, highlightColor);
-                    ImGui.TextUnformatted(filterText.Trim());
+                    ImGui.TextUnformatted(filterText);
                     ImGui.PopStyleColor();
 
                     // Move the starting point for the next search after this match
                     startIndex = matchIndex + filterText.Length;
                 }
+                
 
                 // Display any content after the last match
                 if (startIndex < content.Length)
@@ -320,8 +326,10 @@ namespace Snooper
                     ImGui.TextUnformatted(content.Substring(startIndex));
                 }
 
-                ImGui.PopStyleColor();
+                ImGui.PopStyleVar();
             }
+            
+            ImGui.PopStyleColor();
         }
     }
 

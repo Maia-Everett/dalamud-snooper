@@ -84,6 +84,7 @@ namespace Snooper
         public bool ShowTimestamps { get; set; } = false;
         public bool HoverMode { get; set; } = true;
         public bool SoundAlerts { get; set; } = true;
+        public bool Autoscroll { get; set; } = true;
         public ISet<XivChatType> AllowedChatTypes { get; set; } = new HashSet<XivChatType>(AllAllowedChatTypes);
         public IDictionary<XivChatType, uint> ChatColors { get; set; } = new Dictionary<XivChatType, uint>(DefaultChatColors);
         public IDictionary<uint, WindowConfiguration> Windows { get; set; } = new Dictionary<uint, WindowConfiguration>();
