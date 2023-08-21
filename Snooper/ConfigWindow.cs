@@ -72,7 +72,7 @@ namespace Snooper
                 showTimestamps = configuration.ShowTimestamps;
                 soundAlerts = configuration.SoundAlerts;
                 autoscroll = configuration.Autoscroll;
-                hoverMode = Convert.ToInt32(configuration.HoverMode);
+                hoverMode = (int) configuration.HoverMode;
 
                 channels = new List<ChannelEntry>
                 {
@@ -129,7 +129,7 @@ namespace Snooper
                 configuration.ShowTimestamps = showTimestamps;
                 configuration.SoundAlerts = soundAlerts;
                 configuration.Autoscroll = autoscroll;
-                configuration.HoverMode = Convert.ToBoolean(hoverMode);
+                configuration.HoverMode = (Configuration.Hovermodes) hoverMode;
 
                 foreach (var channel in channels)
                 {
@@ -230,10 +230,12 @@ namespace Snooper
 
                 ImGui.Text("Show player chat log on");
                 ImGui.SameLine();
-                ImGui.RadioButton("Click", ref localConfig.hoverMode, 0);
+                ImGui.RadioButton("Click", ref localConfig.hoverMode, (int)Configuration.Hovermodes.Click);
                 ImGui.SameLine();
-                ImGui.RadioButton("Mouse over", ref localConfig.hoverMode, 1);
-
+                ImGui.RadioButton("Mouse over", ref localConfig.hoverMode, (int)Configuration.Hovermodes.MouseOver);
+                ImGui.SameLine();
+                ImGui.RadioButton("Joint", ref localConfig.hoverMode, (int)Configuration.Hovermodes.Joint);
+                
                 ImGuiHelpers.ScaledDummy(new Vector2(0, 8));
 
                 ImGui.Text("Show channels:");
@@ -295,6 +297,4 @@ namespace Snooper
             ImGui.End();
         }
     }
-
-
 }

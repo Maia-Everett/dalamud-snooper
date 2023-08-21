@@ -60,7 +60,7 @@ namespace Snooper
             { XivChatType.Alliance, ToImGuiColor(0xff9d20) },
             { XivChatType.FreeCompany, ToImGuiColor(0x9fd0d6) },
         };
-
+        
         static Configuration()
         {
             // Initialize LS and CWLS colors
@@ -75,6 +75,13 @@ namespace Snooper
                 DefaultChatColors.Add(cwlsChannel, lsColor);
             }
         }
+        
+        public enum Hovermodes
+        {
+            Click = 1,
+            MouseOver = 2,
+            Joint = 3
+        }
 
         public int Version { get; set; } = 0;
         public float Opacity { get; set; } = 0.6f;
@@ -82,7 +89,7 @@ namespace Snooper
         public bool EnableFilter { get; set; } = true;
         public bool ShowOnStart { get; set; } = false;
         public bool ShowTimestamps { get; set; } = false;
-        public bool HoverMode { get; set; } = true;
+        public Hovermodes HoverMode { get; set; } = Hovermodes.MouseOver;
         public bool SoundAlerts { get; set; } = true;
         public bool Autoscroll { get; set; } = true;
         public ISet<XivChatType> AllowedChatTypes { get; set; } = new HashSet<XivChatType>(AllAllowedChatTypes);
