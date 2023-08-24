@@ -131,7 +131,7 @@ namespace Snooper
             }
             else
             {
-                targetName = wasWindowHovered ? lastTarget : GetTargetName(Configuration.Hovermodes.Click);
+                targetName = wasWindowHovered ? lastTarget : GetTargetName(Configuration.HoverModes.Click);
                 playerNames = windowConfig.PlayerNames;
             }
 
@@ -239,11 +239,11 @@ namespace Snooper
         }
 
 
-        private string? GetTargetName(Configuration.Hovermodes hoverMode)
+        private string? GetTargetName(Configuration.HoverModes hoverMode)
         {
             GameObject? target = null;
 
-            if (hoverMode == Configuration.Hovermodes.Joint)
+            if (hoverMode == Configuration.HoverModes.Joint)
             {
                 target = targetManager.Target;
                 if (IsValidPlayer(target))
@@ -252,7 +252,7 @@ namespace Snooper
                 }
             }
 
-            if (hoverMode == Configuration.Hovermodes.MouseOver || hoverMode == Configuration.Hovermodes.Joint)
+            if (hoverMode == Configuration.HoverModes.MouseOver || hoverMode == Configuration.HoverModes.Joint)
             {
                 target = targetManager.MouseOverTarget;
                 if (IsValidPlayer(target))

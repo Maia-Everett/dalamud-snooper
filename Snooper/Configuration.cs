@@ -76,7 +76,7 @@ namespace Snooper
             }
         }
         
-        public enum Hovermodes
+        public enum HoverModes
         {
             Click = 1,
             MouseOver = 2,
@@ -89,7 +89,7 @@ namespace Snooper
         public bool EnableFilter { get; set; } = true;
         public bool ShowOnStart { get; set; } = false;
         public bool ShowTimestamps { get; set; } = false;
-        public Hovermodes HoverMode { get; set; } = Hovermodes.MouseOver;
+        public HoverModes HoverMode { get; set; } = HoverModes.MouseOver;
         public bool SoundAlerts { get; set; } = true;
         public bool Autoscroll { get; set; } = true;
         public ISet<XivChatType> AllowedChatTypes { get; set; } = new HashSet<XivChatType>(AllAllowedChatTypes);
