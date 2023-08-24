@@ -54,6 +54,7 @@ namespace Snooper
         private string? lastTarget;
         private DateTime? lastChatUpdate;
         private string filterText = "";
+        private bool wasWindowHovered = false;
 
         // passing in the image here just for simplicity
         public SnooperWindow(Configuration configuration, ClientState clientState, PluginState pluginState, TargetManager targetManager,
@@ -122,15 +123,15 @@ namespace Snooper
 
             ICollection<string> playerNames;
             string? targetName;
-
+            
             if (windowConfig == null)
             {
-                targetName = GetTargetName(configuration.HoverMode);
+                targetName = wasWindowHovered ? lastTarget : GetTargetName(configuration.HoverMode);
                 playerNames = targetName == null ? Array.Empty<string>() : new string[] { targetName };
             }
             else
             {
-                targetName = GetTargetName(false);
+                targetName = wasWindowHovered ? lastTarget : GetTargetName(Configuration.HoverModeType.Click);
                 playerNames = windowConfig.PlayerNames;
             }
 
@@ -149,6 +150,8 @@ namespace Snooper
                 visible = ImGui.Begin(windowTitle, ref windowConfig!.visible);
             }
 
+            wasWindowHovered = ImGui.IsWindowHovered();
+            
             if (visible)
             {
                 if (id == null && playerNames.Count > 0)
@@ -187,6 +190,7 @@ namespace Snooper
                 
                 ImGui.SetWindowFontScale(configuration.FontScale);
                 ImGui.BeginChild("ScrollRegion", ImGuiHelpers.ScaledVector2(0, -32));
+                wasWindowHovered = wasWindowHovered || ImGui.IsWindowHovered();
 
                 if (playerNames.Count > 0)
                 {
@@ -228,37 +232,43 @@ namespace Snooper
             
             ImGui.End();
 
-            if (id == null)
+            if (id == null && !wasWindowHovered)
             {
                 lastTarget = playerNames.Count == 0 ? null : targetName;
             }
         }
 
-        private string? GetTargetName(bool useMouseOver)
+
+        private string? GetTargetName(Configuration.HoverModeType hoverMode)
         {
             GameObject? target = null;
 
-            if (!useMouseOver)
+            if (hoverMode == Configuration.HoverModeType.Joint)
             {
                 target = targetManager.Target;
-            }
-            else
-            {
-                target = targetManager.MouseOverTarget;
-
-                if (target == null || target.ObjectKind != ObjectKind.Player)
+                if (IsValidPlayer(target))
                 {
-                    target = targetManager.Target;
+                    return target?.Name?.ToString();
                 }
             }
 
-            if (target == null || target.ObjectKind != ObjectKind.Player)
+            if (hoverMode == Configuration.HoverModeType.MouseOver || hoverMode == Configuration.HoverModeType.Joint)
             {
-                return null;
+                target = targetManager.MouseOverTarget;
+                if (IsValidPlayer(target))
+                {
+                    return target?.Name?.ToString();
+                }
             }
 
-            return target.Name.ToString();
+            target = targetManager.Target;
+            return IsValidPlayer(target) ? target?.Name?.ToString() : null;
         }
+         
+         private bool IsValidPlayer(GameObject? obj)
+         {
+             return obj != null && obj.ObjectKind == ObjectKind.Player;
+         }
 
         private void ShowMessage(ChatEntry entry)
         {
@@ -332,6 +342,4 @@ namespace Snooper
             ImGui.PopStyleColor();
         }
     }
-
-
 }
