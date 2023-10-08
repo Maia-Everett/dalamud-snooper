@@ -75,9 +75,9 @@ namespace Snooper
         
         public enum HoverModeType
         {
-            Click = 1,
-            MouseOver = 2,
-            Joint = 3
+            Click = 0,
+            MouseOver = 1,
+            Joint = 2
         }
 
         public int Version { get; set; } = 0;
