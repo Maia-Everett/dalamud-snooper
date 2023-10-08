@@ -234,6 +234,10 @@ namespace Snooper
                 ImGui.RadioButton("Mouse over", ref localConfig.hoverMode, (int)Configuration.HoverModeType.MouseOver);
                 ImGui.SameLine();
                 ImGui.RadioButton("Joint", ref localConfig.hoverMode, (int)Configuration.HoverModeType.Joint);
+
+                if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) {
+                    ImGui.SetTooltip("Shows log of selected target if there is one, otherwise of moused-over player");
+                }
                 
                 ImGuiHelpers.ScaledDummy(new Vector2(0, 8));
 
