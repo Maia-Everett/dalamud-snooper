@@ -84,7 +84,7 @@ namespace Snooper
         public float Opacity { get; set; } = 0.6f;
         public float FontScale { get; set; } = 1.0f;
         public bool EnableFilter { get; set; } = true;
-        public bool ShowOnStart { get; set; } = false;
+        public bool ShowOnStart { get; set; } = true;
         public bool ShowTimestamps { get; set; } = false;
         public HoverModeType HoverMode { get; set; } = HoverModeType.MouseOver;
         public bool SoundAlerts { get; set; } = true;
