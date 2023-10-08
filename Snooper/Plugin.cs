@@ -5,6 +5,7 @@ using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.IoC;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 
@@ -16,7 +17,7 @@ namespace Snooper
 
         private const string commandName = "/snooper";
 
-        private readonly CommandManager commandManager;
+        private readonly ICommandManager commandManager;
         private readonly SnooperWindow snooperWindow;
         private readonly ConfigWindow configWindow;
         private readonly ChatListener chatListener;
@@ -25,11 +26,12 @@ namespace Snooper
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-            [RequiredVersion("1.0")] CommandManager commandManager,
-            [RequiredVersion("1.0")] ClientState clientState,
-            [RequiredVersion("1.0")] ChatGui chatGui,
-            [RequiredVersion("1.0")] TargetManager targetManager,
-            [RequiredVersion("1.0")] SigScanner sigScanner)
+            [RequiredVersion("1.0")] ICommandManager commandManager,
+            [RequiredVersion("1.0")] IClientState clientState,
+            [RequiredVersion("1.0")] IChatGui chatGui,
+            [RequiredVersion("1.0")] ITargetManager targetManager,
+            [RequiredVersion("1.0")] ISigScanner sigScanner,
+            [RequiredVersion("1.0")] IGameInteropProvider interop)
         {
             configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             
@@ -39,7 +41,7 @@ namespace Snooper
             var chatLog = new ChatLog();
             snooperWindow = new SnooperWindow(configuration, clientState, pluginState, targetManager, chatLog, pluginInterface);
             configWindow = new ConfigWindow(configuration, pluginInterface);
-            chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, sigScanner);
+            chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, sigScanner, interop);
 
             this.commandManager = commandManager;
             this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)

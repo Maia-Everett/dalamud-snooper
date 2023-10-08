@@ -1,5 +1,6 @@
 // (c) 2021 Ottermandias (ChatAlerts)
 using Dalamud.Game;
+using Dalamud.Plugin.Services;
 
 namespace Snooper.SeFunctions
 {
@@ -7,8 +8,8 @@ namespace Snooper.SeFunctions
 
     public sealed class PlaySound : SeFunctionBase<PlaySoundDelegate>
     {
-        public PlaySound(SigScanner sigScanner)
-            : base(sigScanner, "E8 ?? ?? ?? ?? 4D 39 BE")
+        public PlaySound(ISigScanner sigScanner, IGameInteropProvider interop)
+            : base(sigScanner, interop, "E8 ?? ?? ?? ?? 4D 39 BE")
         { }
 
         public void Play(Sounds id)

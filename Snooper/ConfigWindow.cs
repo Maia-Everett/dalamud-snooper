@@ -3,6 +3,7 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 using ImGuiNET;
 using System;
@@ -178,7 +179,7 @@ namespace Snooper
         }
 
         private const int DefaultWidth = 450;
-        private const int DefaultHeight = 420;
+        private const int DefaultHeight = 620;
 
         private readonly Configuration configuration;
         private readonly DalamudPluginInterface pluginInterface;

@@ -1,4 +1,10 @@
-﻿using Dalamud.Game;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Enums;
@@ -6,12 +12,9 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Plugin.Services;
+
 using Snooper.SeFunctions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Snooper
 {
@@ -19,14 +22,14 @@ namespace Snooper
     {
         private readonly Configuration configuration;
         private readonly PluginState pluginState;
-        private readonly ChatGui chatGui;
+        private readonly IChatGui chatGui;
         private readonly ChatLog chatLog;
-        private readonly ClientState clientState;
-        private readonly TargetManager targetManager;
+        private readonly IClientState clientState;
+        private readonly ITargetManager targetManager;
         private readonly PlaySound playSound;
 
-        internal ChatListener(Configuration configuration, PluginState pluginState, ClientState clientState,
-            ChatGui chatGui, ChatLog chatLog, TargetManager targetManager, SigScanner sigScanner)
+        internal ChatListener(Configuration configuration, PluginState pluginState, IClientState clientState,
+            IChatGui chatGui, ChatLog chatLog, ITargetManager targetManager, ISigScanner sigScanner, IGameInteropProvider interop)
         {
             this.configuration = configuration;
             this.pluginState = pluginState;
@@ -35,7 +38,7 @@ namespace Snooper
             this.chatLog = chatLog;
             this.targetManager = targetManager;
             chatGui.ChatMessage += OnChatMessage;
-            playSound = new PlaySound(sigScanner);
+            playSound = new PlaySound(sigScanner, interop);
         }
 
         public void Dispose()

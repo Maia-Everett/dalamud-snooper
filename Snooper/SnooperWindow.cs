@@ -10,6 +10,8 @@ using System.Numerics;
 using System.Linq;
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
+using Dalamud.Interface.Utility;
 
 namespace Snooper
 {
@@ -45,9 +47,9 @@ namespace Snooper
         }
 
         private readonly Configuration configuration;
-        private readonly ClientState clientState;
+        private readonly IClientState clientState;
         private readonly PluginState pluginState;
-        private readonly TargetManager targetManager;
+        private readonly ITargetManager targetManager;
         private readonly ChatLog chatLog;
         private readonly DalamudPluginInterface pluginInterface;
 
@@ -57,7 +59,7 @@ namespace Snooper
         private bool wasWindowHovered = false;
 
         // passing in the image here just for simplicity
-        public SnooperWindow(Configuration configuration, ClientState clientState, PluginState pluginState, TargetManager targetManager,
+        public SnooperWindow(Configuration configuration, IClientState clientState, PluginState pluginState, ITargetManager targetManager,
             ChatLog chatLog, DalamudPluginInterface pluginInterface)
         {
             this.configuration = configuration;
