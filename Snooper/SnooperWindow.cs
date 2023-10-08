@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Objects;
@@ -281,7 +282,14 @@ namespace Snooper
                 return;
             }
 
-            var prefix = configuration.ShowTimestamps ? string.Format("[{0}] ", entry.Time.ToShortTimeString()) : "";
+            string prefix;
+            
+            if (configuration.ShowTimestamps) {
+                prefix = string.Format("[{0}] ", entry.Time.ToShortTimeString());
+            } else {
+                prefix = "";
+            }
+
             var content = string.Format(formats[type], sender, entry.Message);
             
             ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
@@ -294,7 +302,7 @@ namespace Snooper
                 ImGui.TextUnformatted(prefix + content);
                 ImGui.PopTextWrapPos();
             }
-            else if (content.Contains(filterText)) // TODO: Dynamic text wrapping on filter (I gave up)
+            else if (content.Contains(filterText, StringComparison.InvariantCultureIgnoreCase)) // TODO: Dynamic text wrapping on filter (I gave up)
             {
                 int matchIndex;
                 int startIndex = 0;
@@ -304,7 +312,10 @@ namespace Snooper
                 // Attempts to get rid of text item spacing
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 1)); 
                 
-                while ((matchIndex = content.IndexOf(filterText, startIndex, StringComparison.OrdinalIgnoreCase)) != -1)
+                ImGui.TextUnformatted(prefix);
+                ImGui.SameLine();
+
+                while ((matchIndex = content.IndexOf(filterText, startIndex, StringComparison.InvariantCultureIgnoreCase)) != -1)
                 {
                     // Display content before the match
                     var beforeMatch = content.Substring(startIndex, matchIndex - startIndex);
@@ -322,7 +333,8 @@ namespace Snooper
 
                     ImGui.SameLine();
                     ImGui.PushStyleColor(ImGuiCol.Text, highlightColor);
-                    ImGui.TextUnformatted(filterText);
+                    ImGui.TextUnformatted(content.Substring(matchIndex,
+                            Math.Min(filterText.Length, content.Length - matchIndex)));
                     ImGui.PopStyleColor();
 
                     // Move the starting point for the next search after this match
