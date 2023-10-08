@@ -18,7 +18,7 @@ namespace Snooper
     class SnooperWindow : IDisposable
     {
         private const int DefaultWidth = 650;
-        private const int DefaultHeight = 500;        
+        private const int DefaultHeight = 500;
 
         private static readonly IDictionary<XivChatType, string> formats = new Dictionary<XivChatType, string>()
         {
@@ -117,7 +117,7 @@ namespace Snooper
 
         private void DrawWindow(uint? id)
         {
-            Configuration.WindowConfiguration? windowConfig = id == null ? null : configuration.Windows[(uint) id];
+            Configuration.WindowConfiguration? windowConfig = id == null ? null : configuration.Windows[(uint)id];
 
             ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowSizeConstraints(ImGuiHelpers.ScaledVector2(80, 80), new Vector2(float.MaxValue, float.MaxValue));
@@ -125,7 +125,7 @@ namespace Snooper
 
             ICollection<string> playerNames;
             string? targetName;
-            
+
             if (windowConfig == null)
             {
                 targetName = wasWindowHovered ? lastTarget : GetTargetName(configuration.HoverMode);
@@ -153,7 +153,7 @@ namespace Snooper
             }
 
             wasWindowHovered = ImGui.IsWindowHovered();
-            
+
             if (visible)
             {
                 if (id == null && playerNames.Count > 0)
@@ -189,7 +189,7 @@ namespace Snooper
                         ImGui.EndTooltip();
                     }
                 }
-                
+
                 ImGui.SetWindowFontScale(configuration.FontScale);
                 ImGui.BeginChild("ScrollRegion", ImGuiHelpers.ScaledVector2(0, -32));
                 wasWindowHovered = wasWindowHovered || ImGui.IsWindowHovered();
@@ -202,7 +202,7 @@ namespace Snooper
                     {
                         ShowMessage(entry);
                     }
-                    
+
                     DateTime? chatUpdateTime = log.Last?.Value.Time;
                     DateTime? currentLastUpdate = id == null ? lastChatUpdate : windowConfig!.lastUpdate;
 
@@ -228,10 +228,10 @@ namespace Snooper
                 {
                     ImGui.InputText("Filter Messages", ref filterText, 100);
                 }
-            
+
                 ImGui.SetWindowFontScale(1);
             }
-            
+
             ImGui.End();
 
             if (id == null && !wasWindowHovered)
@@ -266,11 +266,11 @@ namespace Snooper
             target = targetManager.Target;
             return IsValidPlayer(target) ? target?.Name?.ToString() : null;
         }
-         
-         private bool IsValidPlayer(GameObject? obj)
-         {
-             return obj != null && obj.ObjectKind == ObjectKind.Player;
-         }
+
+        private bool IsValidPlayer(GameObject? obj)
+        {
+            return obj != null && obj.ObjectKind == ObjectKind.Player;
+        }
 
         private void ShowMessage(ChatEntry entry)
         {
@@ -283,17 +283,26 @@ namespace Snooper
             }
 
             string prefix;
-            
-            if (configuration.ShowTimestamps) {
-                prefix = string.Format("[{0}] ", entry.Time.ToShortTimeString());
-            } else {
+
+            if (configuration.ShowTimestamps == Configuration.TimestampType.Off)
+            {
                 prefix = "";
+            }
+            else
+            {
+                string timestamp = configuration.ShowTimestamps switch
+                {
+                    Configuration.TimestampType.Use12Hour => entry.Time.ToString("h:mm tt"),
+                    Configuration.TimestampType.Use24Hour => entry.Time.ToString("H:mm"),
+                    _ => entry.Time.ToShortTimeString(),
+                };
+                prefix = string.Format("[{0}] ", timestamp);
             }
 
             var content = string.Format(formats[type], sender, entry.Message);
-            
+
             ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
-            
+
             if (string.IsNullOrEmpty(filterText))
             {
                 // Display the entire content if no filter is applied
@@ -310,8 +319,8 @@ namespace Snooper
                 var highlightColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); // Bright red;
 
                 // Attempts to get rid of text item spacing
-                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 1)); 
-                
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 1));
+
                 ImGui.TextUnformatted(prefix);
                 ImGui.SameLine();
 
@@ -329,7 +338,7 @@ namespace Snooper
                         ImGui.SameLine(); // Same line after first
                         ImGui.TextUnformatted(beforeMatch);
                     }
-                    
+
 
                     ImGui.SameLine();
                     ImGui.PushStyleColor(ImGuiCol.Text, highlightColor);
@@ -340,7 +349,7 @@ namespace Snooper
                     // Move the starting point for the next search after this match
                     startIndex = matchIndex + filterText.Length;
                 }
-                
+
 
                 // Display any content after the last match
                 if (startIndex < content.Length)
@@ -351,7 +360,7 @@ namespace Snooper
 
                 ImGui.PopStyleVar();
             }
-            
+
             ImGui.PopStyleColor();
         }
     }

@@ -77,7 +77,14 @@ namespace Snooper
         {
             Click = 0,
             MouseOver = 1,
-            Joint = 2
+            Joint = 2,
+        }
+
+        public enum TimestampType {
+            Off = 0,
+            System = 1,
+            Use12Hour  = 2,
+            Use24Hour = 3,
         }
 
         public int Version { get; set; } = 0;
@@ -85,7 +92,7 @@ namespace Snooper
         public float FontScale { get; set; } = 1.0f;
         public bool EnableFilter { get; set; } = true;
         public bool ShowOnStart { get; set; } = true;
-        public bool ShowTimestamps { get; set; } = false;
+        public TimestampType ShowTimestamps { get; set; } = TimestampType.Off;
         public HoverModeType HoverMode { get; set; } = HoverModeType.MouseOver;
         public bool SoundAlerts { get; set; } = true;
         public bool Autoscroll { get; set; } = true;
