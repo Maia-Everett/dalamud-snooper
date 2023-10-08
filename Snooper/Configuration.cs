@@ -1,11 +1,8 @@
-﻿using Dalamud.Configuration;
-using Dalamud.Game.Text;
-using Dalamud.Plugin;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using Dalamud.Configuration;
+using Dalamud.Game.Text;
 
 namespace Snooper
 {

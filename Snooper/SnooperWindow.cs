@@ -1,17 +1,16 @@
-﻿using Dalamud.Game.ClientState.Objects;
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
+
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
-using Dalamud.Interface;
-using ImGuiNET;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Linq;
-using Dalamud.Game.ClientState;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using Dalamud.Interface.Utility;
+
+using ImGuiNET;
 
 namespace Snooper
 {

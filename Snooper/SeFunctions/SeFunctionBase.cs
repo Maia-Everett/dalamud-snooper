@@ -1,9 +1,9 @@
 ﻿// (c) 2021 Ottermandias (ChatAlerts)
 using System;
 using System.Runtime.InteropServices;
+
 using Dalamud.Game;
 using Dalamud.Hooking;
-using Dalamud.Logging;
 using Dalamud.Plugin.Services;
 
 namespace Snooper.SeFunctions
