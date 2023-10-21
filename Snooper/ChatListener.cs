@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-
+using System.Text.RegularExpressions;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Enums;
@@ -15,6 +15,8 @@ namespace Snooper
 {
     internal class ChatListener: IDisposable
     {
+        private static readonly Regex UnicodePrivateUseArea = new(@"[\uE000-\uF8FF]+", RegexOptions.Compiled);
+
         private readonly Configuration configuration;
         private readonly PluginState pluginState;
         private readonly IChatGui chatGui;
@@ -61,7 +63,11 @@ namespace Snooper
 
                 var playerName = playerPayload != null ? playerPayload.PlayerName : sender.ToString();
 
-                chatLog.Add(playerName, new Snooper.ChatEntry(playerName, message.ToString(), type, DateTime.Now));
+                // GitHub issue #5: When the message is from self in party chat, a bogus U+E090 character is prepended
+                // to the character name. Strip the entire Private Use Area to be safe.
+                playerName = UnicodePrivateUseArea.Replace(playerName, "");
+
+                chatLog.Add(playerName, new ChatEntry(playerName, message.ToString(), type, DateTime.Now));
 
                 // Play alert if enabled and the message came from the target
                 if (configuration.SoundAlerts && pluginState.Visible && type != XivChatType.TellIncoming)
