@@ -1,110 +1,90 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-using Dalamud.Game.Text;
+namespace Snooper;
 
-namespace Snooper
+internal class ChatLog
 {
-    public class ChatEntry
-    {
-        public string Sender { get; init; }
-        public string Message { get; init; }
-        public XivChatType Type { get; init; }
-        public DateTime Time { get; init; }
+    private static readonly LinkedList<ChatEntry> EmptyList = new();
+    private const int MaxSenders = 100;
+    private const int MaxMessagesPerSender = 300;
 
-        public ChatEntry(string sender, string message, XivChatType type, DateTime time)
+    private readonly Dictionary<string, LinkedList<ChatEntry>> entryCache = new();
+    private readonly LinkedList<string> lruList = new();
+
+    public void Add(string senderName, ChatEntry entry)
+    {
+        entryCache.TryGetValue(senderName, out LinkedList<ChatEntry>? senderLog);
+
+        if (senderLog == null)
         {
-            this.Sender = sender;
-            this.Message = message;
-            this.Type = type;
-            this.Time = time;
+            // Evict earliest sender if necessary
+            if (entryCache.Count == MaxSenders)
+            {
+                entryCache.Remove(lruList.First!.Value);
+                lruList.RemoveFirst();
+            }
+
+            senderLog = new LinkedList<ChatEntry>();
+            entryCache[senderName] = senderLog;
+            lruList.AddLast(senderName);
         }
+        else
+        {
+            lruList.Remove(senderName);
+            lruList.AddLast(senderName);
+        }
+
+        // Evict earliest log entry if necessary
+        if (senderLog.Count == MaxMessagesPerSender)
+        {
+            senderLog.RemoveFirst();
+        }
+
+        senderLog.AddLast(entry);
     }
 
-    internal class ChatLog
+    public LinkedList<ChatEntry> Get(string senderName)
     {
-        private static readonly LinkedList<ChatEntry> EmptyList = new();
-        private const int MaxSenders = 100;
-        private const int MaxMessagesPerSender = 300;
+        entryCache.TryGetValue(senderName, out LinkedList<ChatEntry>? result);
+        return result ?? EmptyList;
+    }
 
-        private readonly Dictionary<string, LinkedList<ChatEntry>> entryCache = new();
-        private readonly LinkedList<string> lruList = new();
-
-        public void Add(string senderName, ChatEntry entry)
+    public LinkedList<ChatEntry> Get(ICollection<string> senderNames)
+    {
+        if (senderNames.Count == 1)
         {
-            entryCache.TryGetValue(senderName, out LinkedList<ChatEntry>? senderLog);
-
-            if (senderLog == null)
-            {
-                // Evict earliest sender if necessary
-                if (entryCache.Count == MaxSenders)
-                {
-                    entryCache.Remove(lruList.First!.Value);
-                    lruList.RemoveFirst();
-                }
-
-                senderLog = new LinkedList<ChatEntry>();
-                entryCache[senderName] = senderLog;
-                lruList.AddLast(senderName);
-            }
-            else
-            {
-                lruList.Remove(senderName);
-                lruList.AddLast(senderName);
-            }
-
-            // Evict earliest log entry if necessary
-            if (senderLog.Count == MaxMessagesPerSender)
-            {
-                senderLog.RemoveFirst();
-            }
-
-            senderLog.AddLast(entry);
+            // common case - just one character per window
+            return Get(senderNames.First());
         }
 
-        public LinkedList<ChatEntry> Get(string senderName)
+        var aggregate = new List<ChatEntry>();
+
+        foreach (var name in senderNames)
         {
-            entryCache.TryGetValue(senderName, out LinkedList<ChatEntry>? result);
-            return result ?? EmptyList;
+            entryCache.TryGetValue(name, out LinkedList<ChatEntry>? result);
+
+            if (result != null)
+            {
+                aggregate.AddRange(result);
+            }
         }
 
-        public LinkedList<ChatEntry> Get(ICollection<string> senderNames)
+        aggregate.Sort((e1, e2) =>
         {
-            if (senderNames.Count == 1)
+            if (e1.Time < e2.Time)
             {
-                // common case - just one character per window
-                return Get(senderNames.First());
+                return -1;
             }
 
-            var aggregate = new List<ChatEntry>();
-
-            foreach (var name in senderNames)
+            if (e1.Time > e2.Time)
             {
-                entryCache.TryGetValue(name, out LinkedList<ChatEntry>? result);
-
-                if (result != null)
-                {
-                    aggregate.AddRange(result);
-                }
+                return 1;
             }
 
-            aggregate.Sort((e1, e2) =>
-            {
-                if (e1.Time < e2.Time)
-                {
-                    return -1;
-                }
+            return 0;
+        });
 
-                if (e1.Time > e2.Time)
-                {
-                    return 1;
-                }
-
-                return 0;
-            });
-
-            return new LinkedList<ChatEntry>(aggregate);
-        }
+        return new LinkedList<ChatEntry>(aggregate);
     }
 }

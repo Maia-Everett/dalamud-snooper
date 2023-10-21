@@ -6,71 +6,70 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Snooper.SeFunctions;
 
-namespace Snooper
+namespace Snooper;
+
+public sealed class Plugin : IDalamudPlugin
 {
-    public sealed class Plugin : IDalamudPlugin
+    public string Name => "Snooper";
+
+    private const string commandName = "/snooper";
+
+    private readonly ICommandManager commandManager;
+    private readonly SnooperWindow snooperWindow;
+    private readonly ConfigWindow configWindow;
+    private readonly ChatListener chatListener;
+    private readonly Configuration configuration;
+    private readonly PluginState pluginState;
+
+    public Plugin(
+        [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
+        [RequiredVersion("1.0")] ICommandManager commandManager,
+        [RequiredVersion("1.0")] IClientState clientState,
+        [RequiredVersion("1.0")] IChatGui chatGui,
+        [RequiredVersion("1.0")] ITargetManager targetManager,
+        [RequiredVersion("1.0")] ISigScanner sigScanner,
+        [RequiredVersion("1.0")] IGameInteropProvider interop)
     {
-        public string Name => "Snooper";
+        configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-        private const string commandName = "/snooper";
-
-        private readonly ICommandManager commandManager;
-        private readonly SnooperWindow snooperWindow;
-        private readonly ConfigWindow configWindow;
-        private readonly ChatListener chatListener;
-        private readonly Configuration configuration;
-        private readonly PluginState pluginState;
-
-        public Plugin(
-            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-            [RequiredVersion("1.0")] ICommandManager commandManager,
-            [RequiredVersion("1.0")] IClientState clientState,
-            [RequiredVersion("1.0")] IChatGui chatGui,
-            [RequiredVersion("1.0")] ITargetManager targetManager,
-            [RequiredVersion("1.0")] ISigScanner sigScanner,
-            [RequiredVersion("1.0")] IGameInteropProvider interop)
+        pluginState = new PluginState
         {
-            configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            Visible = configuration.ShowOnStart
+        };
 
-            pluginState = new PluginState
-            {
-                Visible = configuration.ShowOnStart
-            };
+        var playSound = new PlaySound(sigScanner, interop);
 
-            var playSound = new PlaySound(sigScanner, interop);
+        var chatLog = new ChatLog();
+        snooperWindow = new SnooperWindow(configuration, clientState, pluginState, targetManager, chatLog, pluginInterface);
+        configWindow = new ConfigWindow(configuration, pluginInterface, playSound);
+        chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, playSound);
 
-            var chatLog = new ChatLog();
-            snooperWindow = new SnooperWindow(configuration, clientState, pluginState, targetManager, chatLog, pluginInterface);
-            configWindow = new ConfigWindow(configuration, pluginInterface, playSound);
-            chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, playSound);
-
-            this.commandManager = commandManager;
-            this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)
-            {
-                HelpMessage = "Toggles the Snooper window."
-            });
-
-            pluginInterface.UiBuilder.Draw += DrawUI;
-            pluginInterface.UiBuilder.OpenConfigUi += () => configWindow.Visible = true;
-        }
-
-        public void Dispose()
+        this.commandManager = commandManager;
+        this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)
         {
-            snooperWindow.Dispose();
-            commandManager.RemoveHandler(commandName);
-            chatListener.Dispose();
-        }
+            HelpMessage = "Toggles the Snooper window."
+        });
 
-        private void OnCommand(string command, string args)
-        {
-            // in response to the slash command, toggle snooper window
-            pluginState.Visible = !pluginState.Visible;
-        }
+        pluginInterface.UiBuilder.Draw += DrawUI;
+        pluginInterface.UiBuilder.OpenConfigUi += () => configWindow.Visible = true;
+    }
 
-        private void DrawUI()
-        {
-            snooperWindow.Draw();
-            configWindow.Draw();
-        }
+    public void Dispose()
+    {
+        snooperWindow.Dispose();
+        commandManager.RemoveHandler(commandName);
+        chatListener.Dispose();
+    }
+
+    private void OnCommand(string command, string args)
+    {
+        // in response to the slash command, toggle snooper window
+        pluginState.Visible = !pluginState.Visible;
+    }
+
+    private void DrawUI()
+    {
+        snooperWindow.Draw();
+        configWindow.Draw();
     }
 }

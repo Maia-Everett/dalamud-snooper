@@ -1,12 +1,11 @@
-﻿namespace Snooper
+﻿namespace Snooper;
+
+internal class PluginState
 {
-    internal class PluginState
+    public bool visible = false;
+    public bool Visible
     {
-        public bool visible = false;
-        public bool Visible
-        {
-            get { return this.visible; }
-            set { this.visible = value; }
-        }
+        get { return this.visible; }
+        set { this.visible = value; }
     }
 }
