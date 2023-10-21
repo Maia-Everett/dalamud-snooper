@@ -10,6 +10,8 @@ using Dalamud.Plugin;
 
 using ImGuiNET;
 using Snooper.SeFunctions;
+using Lumina.Excel.GeneratedSheets;
+using Dalamud.Utility;
 
 namespace Snooper;
 
@@ -65,6 +67,8 @@ class ConfigWindow : IDisposable
         internal Sounds soundAlert;
         internal bool autoscroll;
         internal int hoverMode;
+        internal bool enableLogging;
+        internal string logDirectory;
         internal IList<ChannelEntry> channels;
 
         internal LocalConfiguration(Configuration configuration)
@@ -78,19 +82,26 @@ class ConfigWindow : IDisposable
             soundAlert = configuration.GetEffectiveAlertSound();
             autoscroll = configuration.Autoscroll;
             hoverMode = (int) configuration.HoverMode;
+            enableLogging = configuration.EnableLogging;
+            logDirectory = configuration.LogDirectory;
+
+            if (logDirectory.IsNullOrEmpty())
+            {
+                logDirectory = PluginUtils.GetDefaultLogDirectory();
+            }
 
             channels = new List<ChannelEntry>
             {
-                new ChannelEntry(XivChatType.Say, "Say"),
-                new ChannelEntry(XivChatType.TellIncoming, "Tell"),
-                new ChannelEntry(XivChatType.CustomEmote, "Emote"),
-                new ChannelEntry(XivChatType.Shout, "Shout"),
-                new ChannelEntry(XivChatType.Yell, "Yell"),
-                new ChannelEntry(XivChatType.Party, "Party"),
-                new ChannelEntry(XivChatType.Alliance, "Alliance"),
-                new ChannelEntry(XivChatType.FreeCompany, "Free Company"),
-                new ChannelEntry(XivChatType.Ls1, "Linkshell"),
-                new ChannelEntry(XivChatType.CrossLinkShell1, "Cross-World Linkshell"),
+                new(XivChatType.Say, "Say"),
+                new(XivChatType.TellIncoming, "Tell"),
+                new(XivChatType.CustomEmote, "Emote"),
+                new(XivChatType.Shout, "Shout"),
+                new(XivChatType.Yell, "Yell"),
+                new(XivChatType.Party, "Party"),
+                new(XivChatType.Alliance, "Alliance"),
+                new(XivChatType.FreeCompany, "Free Company"),
+                new(XivChatType.Ls1, "Linkshell"),
+                new(XivChatType.CrossLinkShell1, "Cross-World Linkshell"),
             };
 
             foreach (var channel in channels)
@@ -114,10 +125,17 @@ class ConfigWindow : IDisposable
         public override bool Equals(object? obj)
         {
             return obj is LocalConfiguration other &&
-                   opacity == other.opacity &&
-                   fontScale == other.fontScale &&
-                   showTimestamps == other.showTimestamps &&
-                   channels.Equals(other.channels);
+                    opacity == other.opacity &&
+                    fontScale == other.fontScale &&
+                    showTimestamps == other.showTimestamps &&
+                    enableFilter == other.enableFilter &&
+                    showOnStart == other.showOnStart &&
+                    soundAlert == other.soundAlert &&
+                    autoscroll == other.autoscroll &&
+                    hoverMode == other.hoverMode &&
+                    enableLogging == other.enableLogging &&
+                    logDirectory == other.logDirectory &&
+                    channels.Equals(other.channels);
         }
 
         public override int GetHashCode()
@@ -135,6 +153,8 @@ class ConfigWindow : IDisposable
             configuration.SoundAlerts = soundAlert;
             configuration.Autoscroll = autoscroll;
             configuration.HoverMode = (Configuration.HoverModeType) hoverMode;
+            configuration.EnableLogging = enableLogging;
+            configuration.LogDirectory = logDirectory;
 
             foreach (var channel in channels)
             {
@@ -183,25 +203,27 @@ class ConfigWindow : IDisposable
     }
 
     private const int DefaultWidth = 450;
-    private const int DefaultHeight = 620;
+    private const int DefaultHeight = 500;
 
     private readonly Configuration configuration;
     private readonly DalamudPluginInterface pluginInterface;
     private readonly PlaySound playSound;
+    private readonly ChatLog chatLog;
 
     // this extra bool exists for ImGui, since you can't ref a property
     private bool visible = false;
     public bool Visible
     {
-        get { return this.visible; }
-        set { this.visible = value; }
+        get { return visible; }
+        set { visible = value; }
     }
 
     // passing in the image here just for simplicity
-    public ConfigWindow(Configuration configuration, DalamudPluginInterface pluginInterface, PlaySound playSound)
+    public ConfigWindow(Configuration configuration, ChatLog chatLog, DalamudPluginInterface pluginInterface, PlaySound playSound)
     {
         this.configuration = configuration;
         this.pluginInterface = pluginInterface;
+        this.chatLog = chatLog;
         this.playSound = playSound;
     }
 
@@ -219,7 +241,7 @@ class ConfigWindow : IDisposable
 
         var localConfig = new LocalConfiguration(configuration);
 
-        ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(DefaultWidth, DefaultHeight), ImGuiCond.FirstUseEver);
+        ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(DefaultWidth, DefaultHeight), ImGuiCond.Appearing);
         ImGui.SetNextWindowSizeConstraints(ImGuiHelpers.ScaledVector2(150, 100), new Vector2(float.MaxValue, float.MaxValue));
         ImGui.SetNextWindowBgAlpha(0.9f);
 
@@ -277,6 +299,12 @@ class ConfigWindow : IDisposable
             
             ImGuiHelpers.ScaledDummy(new Vector2(0, 8));
 
+            ImGui.Checkbox("Save log files to:", ref localConfig.enableLogging);
+            ImGui.SameLine();
+            ImGui.InputText("###logDirectory", ref localConfig.logDirectory, 260, ImGuiInputTextFlags.CallbackCompletion);
+
+            ImGuiHelpers.ScaledDummy(new Vector2(0, 8));
+
             ImGui.Text("Show channels:");
 
             foreach (var channel in localConfig.channels)
@@ -305,6 +333,7 @@ class ConfigWindow : IDisposable
             {
                 localConfig.Save();
                 pluginInterface.SavePluginConfig(configuration);
+                chatLog.CloseAllAppenders();
             }
 
             // Close button

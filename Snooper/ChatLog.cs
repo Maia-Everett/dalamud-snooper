@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.IO;
 using System.Linq;
+using Dalamud.Plugin;
 
 namespace Snooper;
 
@@ -7,15 +11,20 @@ internal class ChatLog
 {
     internal static readonly LinkedList<ChatEntry> EmptyList = new();
     private const int MaxSenders = 100;
+    private const int MaxOpenFiles = 100;
     private const int MaxMessagesPerSender = 300;
 
     private readonly Configuration configuration;
+    private readonly DalamudPluginInterface pluginInterface;
     private readonly Dictionary<string, LinkedList<ChatEntry>> entryCache = new();
     private readonly LinkedList<string> lruList = new();
+    private readonly Dictionary<string, StreamWriter> appenderCache = new();
+    private readonly LinkedList<string> appenderLruList = new();
 
-    internal ChatLog(Configuration configuration)
+    internal ChatLog(Configuration configuration, DalamudPluginInterface pluginInterface)
     {
         this.configuration = configuration;
+        this.pluginInterface = pluginInterface;
     }
 
     public void Add(string senderName, ChatEntry entry)
@@ -48,6 +57,11 @@ internal class ChatLog
         }
 
         senderLog.AddLast(entry);
+
+        if (configuration.EnableLogging)
+        {
+            LogToFile(entry);
+        }
     }
 
     public LinkedList<ChatEntry> Get(string senderName)
@@ -92,5 +106,83 @@ internal class ChatLog
         });
 
         return new LinkedList<ChatEntry>(aggregate);
+    }
+
+    private void LogToFile(ChatEntry entry)
+    {
+        string message = string.Format("[{0} ST] {1}",
+                entry.Time.ToUniversalTime().ToString("H:mm:ss"), entry.ToString());
+        var senders = new HashSet<string>
+        {
+            entry.Sender,
+            "global/" + DateTime.UtcNow.ToString("yyyy-MM-dd"),
+        };
+
+        foreach (var windowConfig in configuration.Windows.Values)
+        {
+            senders.Add(string.Join(", ", windowConfig.PlayerNames));
+        }
+
+        try {
+            foreach (var sender in senders)
+            {
+                GetAppender(sender).WriteLine(message);
+            }
+        }
+        catch (Exception e)
+        {
+            pluginInterface.UiBuilder.AddNotification("Cannot write to log: " + e.Message, "Snooper",
+                    Dalamud.Interface.Internal.Notifications.NotificationType.Error);
+        }
+    }
+
+    private StreamWriter GetAppender(string senderName)
+    {
+        appenderCache.TryGetValue(senderName, out StreamWriter? appender);
+
+        if (appender == null)
+        {
+            // Evict earliest sender if necessary
+            if (appenderCache.Count == MaxOpenFiles)
+            {
+                string oldSender = appenderLruList.First!.Value;
+                appenderCache.TryGetValue(oldSender, out StreamWriter? oldAppender);
+
+                if (oldAppender != null)
+                {
+                    oldAppender.Dispose();
+                }
+
+                appenderCache.Remove(oldSender);
+                appenderLruList.RemoveFirst();
+            }
+
+            Directory.CreateDirectory(configuration.LogDirectory);
+            Directory.CreateDirectory(configuration.LogDirectory + "/global");
+
+            string fileName = configuration.LogDirectory + "/" + senderName + ".log";
+            appender = new StreamWriter(fileName, true);
+            appenderCache[senderName] = appender;
+            appenderLruList.AddLast(senderName);
+        }
+        else
+        {
+            appenderLruList.Remove(senderName);
+            appenderLruList.AddLast(senderName);
+        }
+
+        appender.AutoFlush = true;
+        return appender;
+    }
+
+    public void CloseAllAppenders()
+    {
+        foreach (var appender in appenderCache.Values)
+        {
+            appender.Dispose();
+        }
+
+        appenderCache.Clear();
+        appenderLruList.Clear();
     }
 }

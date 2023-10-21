@@ -18,6 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly SnooperWindow snooperWindow;
     private readonly ConfigWindow configWindow;
     private readonly ChatListener chatListener;
+    private readonly ChatLog chatLog;
     private readonly Configuration configuration;
     private readonly PluginState pluginState;
 
@@ -39,8 +40,8 @@ public sealed class Plugin : IDalamudPlugin
 
         var playSound = new PlaySound(sigScanner, interop);
 
-        var chatLog = new ChatLog(configuration);
-        configWindow = new ConfigWindow(configuration, pluginInterface, playSound);
+        chatLog = new ChatLog(configuration, pluginInterface);
+        configWindow = new ConfigWindow(configuration, chatLog, pluginInterface, playSound);
         snooperWindow = new SnooperWindow(configuration, clientState, pluginState, targetManager, chatLog, pluginInterface, configWindow);
         chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, playSound);
 
@@ -59,6 +60,7 @@ public sealed class Plugin : IDalamudPlugin
         snooperWindow.Dispose();
         commandManager.RemoveHandler(commandName);
         chatListener.Dispose();
+        chatLog.CloseAllAppenders();
     }
 
     private void OnCommand(string command, string args)
