@@ -129,26 +129,7 @@ class SnooperWindow : IDisposable
 
         if (visible)
         {
-            if (id == null && playerNames.Count > 0)
-            {
-                if (ImGui.Button("+"))
-                {
-                    var newWindowConfig = new Configuration.WindowConfiguration
-                    {
-                        PlayerNames = new SortedSet<string>(playerNames)
-                    };
-                    configuration.Windows.Add(configuration.NextWindowId, newWindowConfig);
-                    configuration.NextWindowId++;
-                    pluginInterface.SavePluginConfig(configuration);
-                }
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.BeginTooltip();
-                    ImGui.Text("Opens a new snooper window for current target.");
-                    ImGui.EndTooltip();
-                }
-            }
-            else if (id != null && targetName != null && !playerNames.Contains(targetName))
+            if (id != null && targetName != null && !playerNames.Contains(targetName))
             {
                 if (ImGui.Button("Add target: " + targetName))
                 {
@@ -197,7 +178,38 @@ class SnooperWindow : IDisposable
             ImGui.EndChild();
             ImGuiHelpers.ScaledDummy(ImGuiHelpers.ScaledVector2(0, 3));
 
-            if (configuration.EnableFilter)
+            if (id == null && playerNames.Count > 0)
+            {
+                ImGuiHelpers.ScaledDummy(ImGuiHelpers.ScaledVector2(2, 0));
+                ImGui.SameLine();
+
+                if (ImGui.Button(" + "))
+                {
+                    var newWindowConfig = new Configuration.WindowConfiguration
+                    {
+                        PlayerNames = new SortedSet<string>(playerNames)
+                    };
+                    configuration.Windows.Add(configuration.NextWindowId, newWindowConfig);
+                    configuration.NextWindowId++;
+                    pluginInterface.SavePluginConfig(configuration);
+                }
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Text("Opens a new Snooper window for current target.");
+                    ImGui.EndTooltip();
+                }
+                
+                if (configuration.EnableFilter)
+                {
+                    ImGui.SameLine();
+                    ImGuiHelpers.ScaledDummy(ImGuiHelpers.ScaledVector2(2, 0));
+                    ImGui.SameLine();
+                }
+            }
+
+            if (configuration.EnableFilter && playerNames.Count > 0)
             {
                 ImGui.InputText("Filter Messages", ref filterText, 100);
             }
