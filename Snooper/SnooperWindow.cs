@@ -19,32 +19,6 @@ class SnooperWindow : IDisposable
     private const int DefaultWidth = 650;
     private const int DefaultHeight = 500;
 
-    private static readonly IDictionary<XivChatType, string> formats = new Dictionary<XivChatType, string>()
-    {
-        { XivChatType.Say, "{0}: {1}" },
-        { XivChatType.TellIncoming, "{0} >> {1}" },
-        { XivChatType.StandardEmote, "{1}" },
-        { XivChatType.CustomEmote, "{0} {1}" },
-        { XivChatType.Shout, "{0} shouts: {1}" },
-        { XivChatType.Yell, "{0} yells: {1}" },
-        { XivChatType.Party, "({0}) {1}" },
-        { XivChatType.CrossParty, "({0}) {1}" },
-        { XivChatType.Alliance, "(({0})) {1}" },
-        { XivChatType.FreeCompany, "[FC]<{0}> {1}" },
-    };
-
-    static SnooperWindow()
-    {
-        for (int i = 1; i <= 8; i++)
-        {
-            var lsChannel = (XivChatType)((ushort)XivChatType.Ls1 + i - 1);
-            formats.Add(lsChannel, string.Format("[LS{0}]{1}", i, "<{0}> {1}"));
-
-            var cwlsChannel = i == 1 ? XivChatType.CrossLinkShell1 : (XivChatType)((ushort)XivChatType.CrossLinkShell2 + i - 2);
-            formats.Add(cwlsChannel, string.Format("[CWLS{0}]{1}", i, "<{0}> {1}"));
-        }
-    }
-
     private readonly Configuration configuration;
     private readonly IClientState clientState;
     private readonly PluginState pluginState;
@@ -273,7 +247,6 @@ class SnooperWindow : IDisposable
 
     private void ShowMessage(ChatEntry entry)
     {
-        var sender = entry.Sender;
         var type = entry.Type;
 
         if (!configuration.AllowedChatTypes.Contains(type))
@@ -298,7 +271,7 @@ class SnooperWindow : IDisposable
             prefix = string.Format("[{0}] ", timestamp);
         }
 
-        var content = string.Format(formats[type], sender, entry.Message);
+        var content = entry.ToString();
 
         ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
 
