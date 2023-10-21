@@ -39,9 +39,9 @@ public sealed class Plugin : IDalamudPlugin
 
         var playSound = new PlaySound(sigScanner, interop);
 
-        var chatLog = new ChatLog();
-        snooperWindow = new SnooperWindow(configuration, clientState, pluginState, targetManager, chatLog, pluginInterface);
+        var chatLog = new ChatLog(configuration);
         configWindow = new ConfigWindow(configuration, pluginInterface, playSound);
+        snooperWindow = new SnooperWindow(configuration, clientState, pluginState, targetManager, chatLog, pluginInterface, configWindow);
         chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, playSound);
 
         this.commandManager = commandManager;

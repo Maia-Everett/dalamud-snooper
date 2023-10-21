@@ -5,12 +5,18 @@ namespace Snooper;
 
 internal class ChatLog
 {
-    private static readonly LinkedList<ChatEntry> EmptyList = new();
+    internal static readonly LinkedList<ChatEntry> EmptyList = new();
     private const int MaxSenders = 100;
     private const int MaxMessagesPerSender = 300;
 
+    private readonly Configuration configuration;
     private readonly Dictionary<string, LinkedList<ChatEntry>> entryCache = new();
     private readonly LinkedList<string> lruList = new();
+
+    internal ChatLog(Configuration configuration)
+    {
+        this.configuration = configuration;
+    }
 
     public void Add(string senderName, ChatEntry entry)
     {

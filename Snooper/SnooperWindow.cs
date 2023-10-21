@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -25,6 +27,7 @@ class SnooperWindow : IDisposable
     private readonly ITargetManager targetManager;
     private readonly ChatLog chatLog;
     private readonly DalamudPluginInterface pluginInterface;
+    private readonly ConfigWindow configWindow;
 
     private string? lastTarget;
     private DateTime? lastChatUpdate;
@@ -33,7 +36,7 @@ class SnooperWindow : IDisposable
 
     // passing in the image here just for simplicity
     public SnooperWindow(Configuration configuration, IClientState clientState, PluginState pluginState, ITargetManager targetManager,
-        ChatLog chatLog, DalamudPluginInterface pluginInterface)
+        ChatLog chatLog, DalamudPluginInterface pluginInterface, ConfigWindow configWindow)
     {
         this.configuration = configuration;
         this.clientState = clientState;
@@ -41,6 +44,7 @@ class SnooperWindow : IDisposable
         this.targetManager = targetManager;
         this.chatLog = chatLog;
         this.pluginInterface = pluginInterface;
+        this.configWindow = configWindow;
     }
 
     public void Dispose()
@@ -148,9 +152,11 @@ class SnooperWindow : IDisposable
             ImGui.BeginChild("ScrollRegion", ImGuiHelpers.ScaledVector2(0, -32));
             wasWindowHovered = wasWindowHovered || ImGui.IsWindowHovered();
 
+            LinkedList<ChatEntry> log = ChatLog.EmptyList;
+
             if (playerNames.Count > 0)
             {
-                var log = chatLog.Get(playerNames);
+                log = chatLog.Get(playerNames);
 
                 foreach (var entry in log)
                 {
@@ -178,40 +184,61 @@ class SnooperWindow : IDisposable
             ImGui.EndChild();
             ImGuiHelpers.ScaledDummy(ImGuiHelpers.ScaledVector2(0, 3));
 
-            if (id == null && playerNames.Count > 0)
+            // Toolbar
+            if (playerNames.Count > 0)
             {
                 ImGuiHelpers.ScaledDummy(ImGuiHelpers.ScaledVector2(2, 0));
                 ImGui.SameLine();
 
-                if (ImGui.Button(" + "))
+                if (id == null)
                 {
-                    var newWindowConfig = new Configuration.WindowConfiguration
+                    if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
                     {
-                        PlayerNames = new SortedSet<string>(playerNames)
-                    };
-                    configuration.Windows.Add(configuration.NextWindowId, newWindowConfig);
-                    configuration.NextWindowId++;
-                    pluginInterface.SavePluginConfig(configuration);
-                }
+                        var newWindowConfig = new Configuration.WindowConfiguration
+                        {
+                            PlayerNames = new SortedSet<string>(playerNames)
+                        };
+                        configuration.Windows.Add(configuration.NextWindowId, newWindowConfig);
+                        configuration.NextWindowId++;
+                        pluginInterface.SavePluginConfig(configuration);
+                    }
 
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.BeginTooltip();
-                    ImGui.Text("Opens a new Snooper window for current target.");
-                    ImGui.EndTooltip();
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Opens a new Snooper window for current target.");
+                        ImGui.EndTooltip();
+                    }
+
+                    ImGui.SameLine();
+
+                    if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Cog))
+                    {
+                        configWindow.Visible = true;
+                    }
+
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Snooper plugin configuration");
+                        ImGui.EndTooltip();
+                    }
+
+                    ImGui.SameLine();
                 }
                 
-                if (configuration.EnableFilter)
+                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Copy))
+                {
+                    CopyToClipboard(log);
+                }
+
+                if (configuration.EnableFilter && playerNames.Count > 0)
                 {
                     ImGui.SameLine();
                     ImGuiHelpers.ScaledDummy(ImGuiHelpers.ScaledVector2(2, 0));
                     ImGui.SameLine();
+                    ImGui.InputText("Filter Messages", ref filterText, 100);
                 }
-            }
-
-            if (configuration.EnableFilter && playerNames.Count > 0)
-            {
-                ImGui.InputText("Filter Messages", ref filterText, 100);
             }
 
             ImGui.SetWindowFontScale(1);
@@ -266,23 +293,7 @@ class SnooperWindow : IDisposable
             return;
         }
 
-        string prefix;
-
-        if (configuration.ShowTimestamps == Configuration.TimestampType.Off)
-        {
-            prefix = "";
-        }
-        else
-        {
-            string timestamp = configuration.ShowTimestamps switch
-            {
-                Configuration.TimestampType.Use12Hour => entry.Time.ToString("h:mm tt"),
-                Configuration.TimestampType.Use24Hour => entry.Time.ToString("H:mm"),
-                _ => entry.Time.ToShortTimeString(),
-            };
-            prefix = string.Format("[{0}] ", timestamp);
-        }
-
+        string prefix = GetPrefix(entry);
         var content = entry.ToString();
 
         ImGui.PushStyleColor(ImGuiCol.Text, configuration.ChatColors[type] | 0xff000000);
@@ -346,5 +357,30 @@ class SnooperWindow : IDisposable
         }
 
         ImGui.PopStyleColor();
+    }
+
+    private void CopyToClipboard(ICollection<ChatEntry> chatEntries)
+    {
+        var text = string.Join("", chatEntries.Select(entry => GetPrefix(entry) + entry.ToString() + "\n"));
+        ImGui.SetClipboardText(text);
+        pluginInterface.UiBuilder.AddNotification("Chat log copied to clipboard.", "Snooper");
+    }
+
+    private string GetPrefix(ChatEntry entry)
+    {
+        if (configuration.ShowTimestamps == Configuration.TimestampType.Off)
+        {
+            return "";
+        }
+        else
+        {
+            string timestamp = configuration.ShowTimestamps switch
+            {
+                Configuration.TimestampType.Use12Hour => entry.Time.ToString("h:mm tt"),
+                Configuration.TimestampType.Use24Hour => entry.Time.ToString("H:mm"),
+                _ => entry.Time.ToShortTimeString(),
+            };
+            return string.Format("[{0}] ", timestamp);
+        }
     }
 }
