@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
+using Snooper.SeFunctions;
 
 namespace Snooper
 {
@@ -38,6 +39,8 @@ namespace Snooper
             XivChatType.CrossLinkShell7,
             XivChatType.CrossLinkShell8,
         };
+        
+        private const Sounds DefaultSound = Sounds.Sound16;
 
         private static uint ToImGuiColor(uint rgb)
         {
@@ -94,12 +97,20 @@ namespace Snooper
         public bool ShowOnStart { get; set; } = true;
         public TimestampType ShowTimestamps { get; set; } = TimestampType.Off;
         public HoverModeType HoverMode { get; set; } = HoverModeType.MouseOver;
-        public bool SoundAlerts { get; set; } = true;
+        public Sounds SoundAlerts { get; set; } = Sounds.Sound16;
         public bool Autoscroll { get; set; } = true;
         public ISet<XivChatType> AllowedChatTypes { get; set; } = new HashSet<XivChatType>(AllAllowedChatTypes);
         public IDictionary<XivChatType, uint> ChatColors { get; set; } = new Dictionary<XivChatType, uint>(DefaultChatColors);
         public IDictionary<uint, WindowConfiguration> Windows { get; set; } = new Dictionary<uint, WindowConfiguration>();
         public uint NextWindowId { get; set; } = 0;
+
+        public Sounds GetEffectiveAlertSound() {
+            if (SoundAlerts == Sounds.None || (SoundAlerts >= Sounds.Sound01 && SoundAlerts <= Sounds.Sound16)) {
+                return SoundAlerts;
+            }
+
+            return DefaultSound;
+        }
 
         [Serializable]
         public class WindowConfiguration

@@ -4,6 +4,7 @@ using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Snooper.SeFunctions;
 
 namespace Snooper
 {
@@ -30,14 +31,18 @@ namespace Snooper
             [RequiredVersion("1.0")] IGameInteropProvider interop)
         {
             configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            
-            pluginState = new PluginState();
-            pluginState.Visible = configuration.ShowOnStart;
+
+            pluginState = new PluginState
+            {
+                Visible = configuration.ShowOnStart
+            };
+
+            var playSound = new PlaySound(sigScanner, interop);
 
             var chatLog = new ChatLog();
             snooperWindow = new SnooperWindow(configuration, clientState, pluginState, targetManager, chatLog, pluginInterface);
-            configWindow = new ConfigWindow(configuration, pluginInterface);
-            chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, sigScanner, interop);
+            configWindow = new ConfigWindow(configuration, pluginInterface, playSound);
+            chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, playSound);
 
             this.commandManager = commandManager;
             this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)

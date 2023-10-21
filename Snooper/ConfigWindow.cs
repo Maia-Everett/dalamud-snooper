@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 using System.Numerics;
 
@@ -8,11 +9,16 @@ using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 
 using ImGuiNET;
+using Snooper.SeFunctions;
 
 namespace Snooper
 {
     class ConfigWindow : IDisposable
     {
+        private readonly Sounds[] ValidSounds =
+            ((Sounds[])Enum.GetValues(typeof(Sounds))).Where(s => s != Sounds.Unknown).ToArray();
+
+
         internal class ChannelEntry
         {
             internal readonly string name;
@@ -56,7 +62,7 @@ namespace Snooper
             internal bool enableFilter;
             internal bool showOnStart;
             internal int showTimestamps;
-            internal bool soundAlerts;
+            internal Sounds soundAlert;
             internal bool autoscroll;
             internal int hoverMode;
             internal IList<ChannelEntry> channels;
@@ -69,7 +75,7 @@ namespace Snooper
                 enableFilter = configuration.EnableFilter;
                 showOnStart = configuration.ShowOnStart;
                 showTimestamps = (int) configuration.ShowTimestamps;
-                soundAlerts = configuration.SoundAlerts;
+                soundAlert = configuration.GetEffectiveAlertSound();
                 autoscroll = configuration.Autoscroll;
                 hoverMode = (int) configuration.HoverMode;
 
@@ -126,7 +132,7 @@ namespace Snooper
                 configuration.EnableFilter = enableFilter;
                 configuration.ShowOnStart = showOnStart;
                 configuration.ShowTimestamps = (Configuration.TimestampType) showTimestamps;
-                configuration.SoundAlerts = soundAlerts;
+                configuration.SoundAlerts = soundAlert;
                 configuration.Autoscroll = autoscroll;
                 configuration.HoverMode = (Configuration.HoverModeType) hoverMode;
 
@@ -181,6 +187,7 @@ namespace Snooper
 
         private readonly Configuration configuration;
         private readonly DalamudPluginInterface pluginInterface;
+        private readonly PlaySound playSound;
 
         // this extra bool exists for ImGui, since you can't ref a property
         private bool visible = false;
@@ -191,10 +198,11 @@ namespace Snooper
         }
 
         // passing in the image here just for simplicity
-        public ConfigWindow(Configuration configuration, DalamudPluginInterface pluginInterface)
+        public ConfigWindow(Configuration configuration, DalamudPluginInterface pluginInterface, PlaySound playSound)
         {
             this.configuration = configuration;
             this.pluginInterface = pluginInterface;
+            this.playSound = playSound;
         }
 
         public void Dispose()
@@ -225,9 +233,26 @@ namespace Snooper
 
                 ImGui.Checkbox("Show on start", ref localConfig.showOnStart);
                 ImGui.Checkbox("Autoscroll on new message", ref localConfig.autoscroll);
-                ImGui.Checkbox("Play a sound when your target posts a message", ref localConfig.soundAlerts);
 
-                ImGui.Text("Timestamps");
+                ImGui.Text("Play sound on target message:");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(150 * ImGuiHelpers.GlobalScale);
+
+                if (ImGui.BeginCombo("##AlertSoundsCombo", localConfig.soundAlert.ToName()))
+                {
+                    foreach (var sound in ValidSounds)
+                    {
+                        if (ImGui.Selectable($"{sound.ToName()}##AlertSoundsCombo"))
+                        {
+                            localConfig.soundAlert = sound;
+                            playSound.Play(sound);
+                        }
+                    }
+                    
+                    ImGui.EndCombo();
+                }
+
+                ImGui.Text("Timestamps:");
                 ImGui.SameLine();
                 ImGui.RadioButton("Off", ref localConfig.showTimestamps, (int)Configuration.TimestampType.Off);
                 ImGui.SameLine();
@@ -238,7 +263,7 @@ namespace Snooper
                 ImGui.SameLine();
                 ImGui.RadioButton("24-hour", ref localConfig.showTimestamps, (int)Configuration.TimestampType.Use24Hour);
 
-                ImGui.Text("Show player chat log on");
+                ImGui.Text("Show player chat log on:");
                 ImGui.SameLine();
                 ImGui.RadioButton("Click", ref localConfig.hoverMode, (int)Configuration.HoverModeType.Click);
                 ImGui.SameLine();

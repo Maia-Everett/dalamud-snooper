@@ -13,7 +13,7 @@ using Snooper.SeFunctions;
 
 namespace Snooper
 {
-    internal class ChatListener: IDisposable
+    internal class ChatListener : IDisposable
     {
         private static readonly Regex UnicodePrivateUseArea = new(@"[\uE000-\uF8FF]+", RegexOptions.Compiled);
 
@@ -26,7 +26,7 @@ namespace Snooper
         private readonly PlaySound playSound;
 
         internal ChatListener(Configuration configuration, PluginState pluginState, IClientState clientState,
-            IChatGui chatGui, ChatLog chatLog, ITargetManager targetManager, ISigScanner sigScanner, IGameInteropProvider interop)
+            IChatGui chatGui, ChatLog chatLog, ITargetManager targetManager, PlaySound playSound)
         {
             this.configuration = configuration;
             this.pluginState = pluginState;
@@ -34,8 +34,8 @@ namespace Snooper
             this.chatGui = chatGui;
             this.chatLog = chatLog;
             this.targetManager = targetManager;
+            this.playSound = playSound;
             chatGui.ChatMessage += OnChatMessage;
-            playSound = new PlaySound(sigScanner, interop);
         }
 
         public void Dispose()
@@ -62,15 +62,16 @@ namespace Snooper
                 }
 
                 var playerName = playerPayload != null ? playerPayload.PlayerName : sender.ToString();
-
                 // GitHub issue #5: When the message is from self in party chat, a bogus U+E090 character is prepended
                 // to the character name. Strip the entire Private Use Area to be safe.
                 playerName = UnicodePrivateUseArea.Replace(playerName, "");
 
                 chatLog.Add(playerName, new ChatEntry(playerName, message.ToString(), type, DateTime.Now));
 
+                var alertSound = configuration.GetEffectiveAlertSound();
+
                 // Play alert if enabled and the message came from the target
-                if (configuration.SoundAlerts && pluginState.Visible && type != XivChatType.TellIncoming)
+                if (alertSound != Sounds.None && pluginState.Visible && type != XivChatType.TellIncoming)
                 {
                     var target = targetManager.Target;
 
@@ -78,7 +79,7 @@ namespace Snooper
                         && target.ObjectKind == ObjectKind.Player
                         && target.Name.ToString() == playerName)
                     {
-                        playSound.Play(Sounds.Sound16);
+                        playSound.Play(alertSound);
                     }
                 }
             }
