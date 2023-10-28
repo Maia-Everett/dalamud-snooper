@@ -12,6 +12,7 @@ using ImGuiNET;
 using Snooper.SeFunctions;
 using Lumina.Excel.GeneratedSheets;
 using Dalamud.Utility;
+using Snooper.Utils;
 
 namespace Snooper;
 
@@ -87,7 +88,7 @@ class ConfigWindow : IDisposable
 
             if (logDirectory.IsNullOrEmpty())
             {
-                logDirectory = PluginUtils.GetDefaultLogDirectory();
+                logDirectory = PlatformUtils.GetDefaultLogDirectory();
             }
 
             channels = new List<ChannelEntry>

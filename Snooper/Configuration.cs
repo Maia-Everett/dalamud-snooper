@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
 using Snooper.SeFunctions;
+using Snooper.Utils;
 
 namespace Snooper;
 
@@ -99,7 +100,7 @@ public class Configuration: IPluginConfiguration
     public Sounds SoundAlerts { get; set; } = Sounds.Sound16;
     public bool Autoscroll { get; set; } = true;
     public bool EnableLogging { get; set; } = true;
-    public string LogDirectory { get; set; } = PluginUtils.GetDefaultLogDirectory();
+    public string LogDirectory { get; set; } = PlatformUtils.GetDefaultLogDirectory();
     public ISet<XivChatType> AllowedChatTypes { get; set; } = new HashSet<XivChatType>(AllAllowedChatTypes);
     public IDictionary<XivChatType, uint> ChatColors { get; set; } = new Dictionary<XivChatType, uint>(DefaultChatColors);
     public IDictionary<uint, WindowConfiguration> Windows { get; set; } = new Dictionary<uint, WindowConfiguration>();

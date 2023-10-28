@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Dalamud.Utility;
 
-namespace Snooper;
+namespace Snooper.Utils;
 
-internal class PluginUtils
+internal class PlatformUtils
 {
 	internal static string GetDefaultLogDirectory()
     {
