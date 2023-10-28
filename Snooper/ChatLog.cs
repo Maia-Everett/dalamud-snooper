@@ -161,7 +161,7 @@ internal class ChatLog
             Directory.CreateDirectory(configuration.LogDirectory + "/global");
 
             string fileName = configuration.LogDirectory + "/" + senderName + ".log";
-            appender = new StreamWriter(fileName, true);
+            appender = new StreamWriter(fileName, true, System.Text.Encoding.UTF8);
             appenderCache[senderName] = appender;
             appenderLruList.AddLast(senderName);
         }
