@@ -64,6 +64,7 @@ class ConfigWindow : IDisposable
         internal bool enableFilter;
         internal bool showOnStart;
         internal int showTimestamps;
+        internal int displayTimezone;
         internal Sounds soundAlert;
         internal bool autoscroll;
         internal int hoverMode;
@@ -79,6 +80,7 @@ class ConfigWindow : IDisposable
             enableFilter = configuration.EnableFilter;
             showOnStart = configuration.ShowOnStart;
             showTimestamps = (int) configuration.ShowTimestamps;
+            displayTimezone = (int) configuration.DisplayTimezone;
             soundAlert = configuration.GetEffectiveAlertSound();
             autoscroll = configuration.Autoscroll;
             hoverMode = (int) configuration.HoverMode;
@@ -128,6 +130,7 @@ class ConfigWindow : IDisposable
                     opacity == other.opacity &&
                     fontScale == other.fontScale &&
                     showTimestamps == other.showTimestamps &&
+                    displayTimezone == other.displayTimezone &&
                     enableFilter == other.enableFilter &&
                     showOnStart == other.showOnStart &&
                     soundAlert == other.soundAlert &&
@@ -150,6 +153,7 @@ class ConfigWindow : IDisposable
             configuration.EnableFilter = enableFilter;
             configuration.ShowOnStart = showOnStart;
             configuration.ShowTimestamps = (Configuration.TimestampType) showTimestamps;
+            configuration.DisplayTimezone = (Configuration.TimestampTimezone) displayTimezone;
             configuration.SoundAlerts = soundAlert;
             configuration.Autoscroll = autoscroll;
             configuration.HoverMode = (Configuration.HoverModeType) hoverMode;
@@ -182,7 +186,7 @@ class ConfigWindow : IDisposable
     }
 
     private const int DefaultWidth = 450;
-    private const int DefaultHeight = 500;
+    private const int DefaultHeight = 520;
 
     private readonly Configuration configuration;
     private readonly DalamudPluginInterface pluginInterface;
@@ -263,6 +267,14 @@ class ConfigWindow : IDisposable
                     (int)Configuration.TimestampType.Use12Hour);
             ImGui.SameLine();
             ImGui.RadioButton("24-hour", ref localConfig.showTimestamps, (int)Configuration.TimestampType.Use24Hour);
+
+            ImGui.Text("Timestamp timezone:");
+            ImGui.SameLine();
+            ImGui.RadioButton("Server time (UTC)", ref localConfig.displayTimezone,
+                    (int)Configuration.TimestampTimezone.Utc);
+            ImGui.SameLine();
+            ImGui.RadioButton("Local time", ref localConfig.displayTimezone,
+                    (int)Configuration.TimestampTimezone.Local);
 
             ImGui.Text("Show player chat log on:");
             ImGui.SameLine();

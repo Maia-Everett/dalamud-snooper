@@ -385,11 +385,18 @@ class SnooperWindow : IDisposable
         }
         else
         {
+            DateTime time = entry.Time;
+
+            if (configuration.DisplayTimezone == Configuration.TimestampTimezone.Local)
+            {
+                time = time.ToLocalTime();
+            }
+
             string timestamp = configuration.ShowTimestamps switch
             {
-                Configuration.TimestampType.Use12Hour => entry.Time.ToString("h:mm tt"),
-                Configuration.TimestampType.Use24Hour => entry.Time.ToString("H:mm"),
-                _ => entry.Time.ToShortTimeString(),
+                Configuration.TimestampType.Use12Hour => time.ToString("h:mm tt"),
+                Configuration.TimestampType.Use24Hour => time.ToString("H:mm"),
+                _ => time.ToShortTimeString(),
             };
             return string.Format("[{0}] ", timestamp);
         }

@@ -92,12 +92,18 @@ public class Configuration: IPluginConfiguration
         Use24Hour = 3,
     }
 
+    public enum TimestampTimezone {
+        Utc = 0,
+        Local = 1,
+    }
+
     public int Version { get; set; } = 0;
     public float Opacity { get; set; } = 0.6f;
     public float FontScale { get; set; } = 1.0f;
     public bool EnableFilter { get; set; } = true;
     public bool ShowOnStart { get; set; } = true;
     public TimestampType ShowTimestamps { get; set; } = TimestampType.Off;
+    public TimestampTimezone DisplayTimezone { get; set; } = TimestampTimezone.Utc;
     public HoverModeType HoverMode { get; set; } = HoverModeType.MouseOver;
     public Sounds SoundAlerts { get; set; } = Sounds.Sound16;
     public bool Autoscroll { get; set; } = true;
