@@ -132,21 +132,6 @@ class SnooperWindow : IDisposable
 
         if (visible)
         {
-            if (id != null && targetName != null && !playerNames.Contains(targetName))
-            {
-                if (ImGui.Button("Add target: " + targetName))
-                {
-                    playerNames.Add(targetName);
-                    pluginInterface.SavePluginConfig(configuration);
-                }
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.BeginTooltip();
-                    ImGui.Text("Adds target to the current snooper window");
-                    ImGui.EndTooltip();
-                }
-            }
-
             ImGui.SetWindowFontScale(configuration.FontScale);
             ImGui.BeginChild("ScrollRegion", ImGuiHelpers.ScaledVector2(0, -32));
             wasWindowHovered = wasWindowHovered || ImGui.IsWindowHovered();
@@ -231,12 +216,39 @@ class SnooperWindow : IDisposable
                     CopyToClipboard(log);
                 }
 
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Text("Copy log to clipboard");
+                    ImGui.EndTooltip();
+                }
+
+                if (id != null && targetName != null && !playerNames.Contains(targetName))
+                {
+                    ImGui.SameLine();
+                    
+                    if (ImGui.Button("Add target: " + targetName))
+                    {
+                        playerNames.Add(targetName);
+                        pluginInterface.SavePluginConfig(configuration);
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text("Adds target to the current snooper window");
+                        ImGui.EndTooltip();
+                    }
+                }
+
                 if (configuration.EnableFilter && playerNames.Count > 0)
                 {
                     ImGui.SameLine();
                     ImGuiHelpers.ScaledDummy(ImGuiHelpers.ScaledVector2(2, 0));
                     ImGui.SameLine();
-                    ImGui.InputText("Filter Messages", ref filterText, 100);
+                    ImGui.Text("Filter messages: ");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                    ImGui.InputText("###FilterBar" + id, ref filterText, 100);
                 }
             }
 
