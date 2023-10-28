@@ -21,11 +21,6 @@ internal class LruCache<TKey, TValue> where TKey: notnull {
 		}
 	}
 
-	internal TValue GetCachedOrDefault(TKey key, TValue defaultValue)
-	{
-		return data.GetValueOrDefault(key, defaultValue);
-	}
-
 	internal TValue GetOrLoad(TKey key, Func<TKey, TValue> valueLoader)
 	{
 		data.TryGetValue(key, out TValue? value);
@@ -49,6 +44,18 @@ internal class LruCache<TKey, TValue> where TKey: notnull {
 
 		lruList.AddLast(key);
 		return value;
+	}
+
+	internal void Set(TKey key, TValue value)
+	{
+		if (data.ContainsKey(key))
+		{
+			data[key] = value;
+		}
+		else
+		{
+			GetOrLoad(key, _ => value);
+		}
 	}
 
 	internal void Clear()

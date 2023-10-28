@@ -29,7 +29,8 @@ public sealed class Plugin : IDalamudPlugin
         [RequiredVersion("1.0")] IChatGui chatGui,
         [RequiredVersion("1.0")] ITargetManager targetManager,
         [RequiredVersion("1.0")] ISigScanner sigScanner,
-        [RequiredVersion("1.0")] IGameInteropProvider interop)
+        [RequiredVersion("1.0")] IGameInteropProvider interop,
+        [RequiredVersion("1.0")] IPluginLog pluginLog)
     {
         configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
@@ -40,7 +41,7 @@ public sealed class Plugin : IDalamudPlugin
 
         var playSound = new PlaySound(sigScanner, interop);
 
-        chatLog = new ChatLog(configuration, pluginInterface);
+        chatLog = new ChatLog(configuration, pluginInterface, pluginLog);
         configWindow = new ConfigWindow(configuration, chatLog, pluginInterface, playSound);
         snooperWindow = new SnooperWindow(configuration, clientState, pluginState, targetManager, chatLog, pluginInterface, configWindow);
         chatListener = new ChatListener(configuration, pluginState, clientState, chatGui, chatLog, targetManager, playSound);

@@ -11,7 +11,7 @@ public class ChatEntry
 {
     private const string TimeFormat = "yyyy-MM-dd HH:mm:ss";
     private static readonly Regex TimedStringRegex = new(
-        @"^\[(\d{4}-\d{2}-\d{2} \d{2}-\d{2}-\d{2}) ST\] (.+)$", RegexOptions.Compiled);
+        @"^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) ST\] (.+)$", RegexOptions.Compiled);
 
 	private static readonly IDictionary<XivChatType, string> formats = new Dictionary<XivChatType, string>()
     {
@@ -36,6 +36,7 @@ public class ChatEntry
         XivChatType.Yell,
         XivChatType.Shout,
         XivChatType.TellIncoming,
+        XivChatType.TellOutgoing,
         XivChatType.Say,
         XivChatType.CustomEmote,
     }.Select(ToParseRegex).ToList();
@@ -92,7 +93,7 @@ public class ChatEntry
 		return string.Format(formats[Type], Sender, Message);
 	}
 
-    public static ChatEntry? ParseTimedString(string timedString)
+    public static ChatEntry? TryParseTimedString(string timedString)
     {
         Match match = TimedStringRegex.Match(timedString);
 
@@ -102,9 +103,10 @@ public class ChatEntry
         }
 
         string timestamp = match.Groups[1].Value;
-        string text = match.Groups[2].Value; 
+        string text = match.Groups[2].Value;
+        var flags = DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal;
 
-        if (!DateTime.TryParseExact(timestamp, TimeFormat, null, DateTimeStyles.AssumeUniversal, out DateTime time))
+        if (!DateTime.TryParseExact(timestamp, TimeFormat, null, flags, out DateTime time))
         {
             return null;
         }
