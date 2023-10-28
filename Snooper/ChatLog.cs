@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Dalamud.Plugin;
+using Snooper.Utils;
 
 namespace Snooper;
 
@@ -16,10 +17,8 @@ internal class ChatLog
 
     private readonly Configuration configuration;
     private readonly DalamudPluginInterface pluginInterface;
-    private readonly Dictionary<string, LinkedList<ChatEntry>> entryCache = new();
-    private readonly LinkedList<string> lruList = new();
-    private readonly Dictionary<string, StreamWriter> appenderCache = new();
-    private readonly LinkedList<string> appenderLruList = new();
+    private readonly LruCache<string, LinkedList<ChatEntry>> entryCache = new(MaxSenders);
+    private readonly LruCache<string, StreamWriter> appenderCache = new(MaxOpenFiles);
 
     internal ChatLog(Configuration configuration, DalamudPluginInterface pluginInterface)
     {
@@ -29,26 +28,7 @@ internal class ChatLog
 
     public void Add(string senderName, ChatEntry entry)
     {
-        entryCache.TryGetValue(senderName, out LinkedList<ChatEntry>? senderLog);
-
-        if (senderLog == null)
-        {
-            // Evict earliest sender if necessary
-            if (entryCache.Count == MaxSenders)
-            {
-                entryCache.Remove(lruList.First!.Value);
-                lruList.RemoveFirst();
-            }
-
-            senderLog = new LinkedList<ChatEntry>();
-            entryCache[senderName] = senderLog;
-            lruList.AddLast(senderName);
-        }
-        else
-        {
-            lruList.Remove(senderName);
-            lruList.AddLast(senderName);
-        }
+        LinkedList<ChatEntry> senderLog = entryCache.GetOrLoad(senderName, _ => new LinkedList<ChatEntry>());
 
         // Evict earliest log entry if necessary
         if (senderLog.Count == MaxMessagesPerSender)
@@ -66,8 +46,7 @@ internal class ChatLog
 
     public LinkedList<ChatEntry> Get(string senderName)
     {
-        entryCache.TryGetValue(senderName, out LinkedList<ChatEntry>? result);
-        return result ?? EmptyList;
+        return entryCache.GetCachedOrDefault(senderName, EmptyList);
     }
 
     public LinkedList<ChatEntry> Get(ICollection<string> senderNames)
@@ -82,7 +61,7 @@ internal class ChatLog
 
         foreach (var name in senderNames)
         {
-            entryCache.TryGetValue(name, out LinkedList<ChatEntry>? result);
+            LinkedList<ChatEntry>? result = entryCache[name];
 
             if (result != null)
             {
@@ -137,51 +116,20 @@ internal class ChatLog
 
     private StreamWriter GetAppender(string senderName)
     {
-        appenderCache.TryGetValue(senderName, out StreamWriter? appender);
-
-        if (appender == null)
-        {
-            // Evict earliest sender if necessary
-            if (appenderCache.Count == MaxOpenFiles)
-            {
-                string oldSender = appenderLruList.First!.Value;
-                appenderCache.TryGetValue(oldSender, out StreamWriter? oldAppender);
-
-                if (oldAppender != null)
-                {
-                    oldAppender.Dispose();
-                }
-
-                appenderCache.Remove(oldSender);
-                appenderLruList.RemoveFirst();
-            }
-
+        return appenderCache.GetOrLoad(senderName, key => {
             Directory.CreateDirectory(configuration.LogDirectory);
             Directory.CreateDirectory(configuration.LogDirectory + "/global");
 
             string fileName = configuration.LogDirectory + "/" + senderName + ".log";
-            appender = new StreamWriter(fileName, true, System.Text.Encoding.UTF8);
-            appenderCache[senderName] = appender;
-            appenderLruList.AddLast(senderName);
-        }
-        else
-        {
-            appenderLruList.Remove(senderName);
-            appenderLruList.AddLast(senderName);
-        }
-
-        appender.AutoFlush = true;
-        return appender;
+            return new StreamWriter(fileName, true, Encoding.UTF8)
+            {
+                AutoFlush = true
+            };
+        });
     }
 
     public void CloseAllAppenders()
     {
-        foreach (var appender in appenderCache.Values)
-        {
-            appender.Dispose();
-        }
-
-        appenderCache.Clear();
-        appenderLruList.Clear();
+        appenderCache.Clear(appender => appender.Dispose());
     }
 }
