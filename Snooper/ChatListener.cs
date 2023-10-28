@@ -65,7 +65,17 @@ internal class ChatListener : IDisposable
             // to the character name. Strip the entire Private Use Area to be safe.
             playerName = UnicodePrivateUseArea.Replace(playerName, "");
 
-            chatLog.Add(playerName, new ChatEntry(playerName, message.ToString(), type, DateTime.UtcNow));
+            var chatEntry = new ChatEntry(playerName, message.ToString(), type, DateTime.UtcNow);
+            chatLog.Add(playerName, chatEntry);
+
+            if (type == XivChatType.TellOutgoing && clientState.LocalPlayer != null)
+            {
+                // If Alice sends an outgoing tell to Bob, then the sender, counterintuitively, is reported as Bob.
+                // We want to record the message for both Alice *and* Bob's chat logs.
+                string selfName = clientState.LocalPlayer.Name.TextValue;
+                // ChatEntry is immutable, so reusing the instance is safe
+                chatLog.Add(selfName, chatEntry);
+            }
 
             var alertSound = configuration.GetEffectiveAlertSound();
 

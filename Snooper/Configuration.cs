@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
 using Snooper.SeFunctions;
@@ -14,6 +15,7 @@ public class Configuration: IPluginConfiguration
     {
         XivChatType.Say,
         XivChatType.TellIncoming,
+        XivChatType.TellOutgoing,
         XivChatType.StandardEmote,
         XivChatType.CustomEmote,
         XivChatType.Shout,
@@ -105,6 +107,40 @@ public class Configuration: IPluginConfiguration
     public IDictionary<XivChatType, uint> ChatColors { get; set; } = new Dictionary<XivChatType, uint>(DefaultChatColors);
     public IDictionary<uint, WindowConfiguration> Windows { get; set; } = new Dictionary<uint, WindowConfiguration>();
     public uint NextWindowId { get; set; } = 0;
+
+    [OnDeserialized]
+    protected void OnDeserialized(StreamingContext streamingContext)
+    {
+        NormalizeChannels();
+    }
+
+    public void NormalizeChannels()
+    {
+        CopyChannelSettings(XivChatType.TellIncoming, XivChatType.TellOutgoing);
+        CopyChannelSettings(XivChatType.CustomEmote, XivChatType.StandardEmote);
+        CopyChannelSettings(XivChatType.Party, XivChatType.CrossParty);
+
+        for (int i = 2; i <= 8; i++)
+        {
+            CopyChannelSettings(XivChatType.Ls1, (XivChatType)((ushort)XivChatType.Ls2 + i - 2));
+            CopyChannelSettings(XivChatType.CrossLinkShell1,
+                    (XivChatType)((ushort)XivChatType.CrossLinkShell2 + i - 2));
+        }
+    }
+
+    private void CopyChannelSettings(XivChatType source, XivChatType dest)
+    {
+        if (AllowedChatTypes.Contains(source))
+        {
+            AllowedChatTypes.Add(dest);
+        }
+        else
+        {
+            AllowedChatTypes.Remove(dest);
+        }
+
+        ChatColors[dest] = ChatColors[source];
+    }
 
     public Sounds GetEffectiveAlertSound() {
         if (SoundAlerts == Sounds.None || (SoundAlerts >= Sounds.Sound01 && SoundAlerts <= Sounds.Sound16)) {

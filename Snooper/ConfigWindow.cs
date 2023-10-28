@@ -10,7 +10,6 @@ using Dalamud.Plugin;
 
 using ImGuiNET;
 using Snooper.SeFunctions;
-using Lumina.Excel.GeneratedSheets;
 using Dalamud.Utility;
 using Snooper.Utils;
 
@@ -160,30 +159,9 @@ class ConfigWindow : IDisposable
             foreach (var channel in channels)
             {
                 SaveChannelSettings(channel, channel.type);
-
-                if (channel.type == XivChatType.CustomEmote)
-                {
-                    SaveChannelSettings(channel, XivChatType.StandardEmote);
-                }
-                else if (channel.type == XivChatType.Party)
-                {
-                    SaveChannelSettings(channel, XivChatType.CrossParty);
-                }
-                else if (channel.type == XivChatType.Ls1)
-                {
-                    for (int i = 2; i <= 8; i++)
-                    {
-                        SaveChannelSettings(channel, (XivChatType)((ushort)XivChatType.Ls2 + i - 2));
-                    }
-                }
-                else if (channel.type == XivChatType.CrossLinkShell1)
-                {
-                    for (int i = 2; i <= 8; i++)
-                    {
-                        SaveChannelSettings(channel, (XivChatType)((ushort)XivChatType.CrossLinkShell2 + i - 2));
-                    }
-                }
             }
+
+            configuration.NormalizeChannels();
         }
 
         private void SaveChannelSettings(ChannelEntry channel, XivChatType type)
