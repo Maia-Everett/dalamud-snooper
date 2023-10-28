@@ -190,7 +190,7 @@ class SnooperWindow : IDisposable
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
-                        ImGui.Text("Opens a new Snooper window for current target.");
+                        ImGui.Text("Open a new Snooper window for current target");
                         ImGui.EndTooltip();
                     }
 
@@ -226,7 +226,7 @@ class SnooperWindow : IDisposable
                 if (id != null && targetName != null && !playerNames.Contains(targetName))
                 {
                     ImGui.SameLine();
-                    
+
                     if (ImGui.Button("Add target: " + targetName))
                     {
                         playerNames.Add(targetName);
