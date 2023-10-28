@@ -13,7 +13,7 @@ public class ChatEntry
     private static readonly Regex TimedStringRegex = new(
         @"^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) ST\] (.+)$", RegexOptions.Compiled);
 
-	private static readonly IDictionary<XivChatType, string> formats = new Dictionary<XivChatType, string>()
+    private static readonly IDictionary<XivChatType, string> formats = new Dictionary<XivChatType, string>()
     {
         { XivChatType.Say, "{0}: {1}" },
         { XivChatType.TellIncoming, "{0} >> {1}" },
@@ -70,28 +70,28 @@ public class ChatEntry
         }
     }
 
-	public string Sender { get; init; }
-	public string Message { get; init; }
-	public XivChatType Type { get; init; }
-	public DateTime Time { get; init; }
+    public string Sender { get; init; }
+    public string Message { get; init; }
+    public XivChatType Type { get; init; }
+    public DateTime Time { get; init; }
 
-	public ChatEntry(string sender, string message, XivChatType type, DateTime time)
-	{
-		this.Sender = sender;
-		this.Message = message;
-		this.Type = type;
-		this.Time = time;
-	}
+    public ChatEntry(string sender, string message, XivChatType type, DateTime time)
+    {
+        this.Sender = sender;
+        this.Message = message;
+        this.Type = type;
+        this.Time = time;
+    }
 
     public string ToTimedString()
     {
         return string.Format("[{0} ST] {1}", Time.ToString(TimeFormat), ToString());
     }
 
-	public override string ToString()
-	{
-		return string.Format(formats[Type], Sender, Message);
-	}
+    public override string ToString()
+    {
+        return string.Format(formats[Type], Sender, Message);
+    }
 
     public static ChatEntry? TryParseTimedString(string timedString)
     {

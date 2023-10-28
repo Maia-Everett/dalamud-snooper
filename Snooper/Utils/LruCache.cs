@@ -50,7 +50,7 @@ internal class LruCache<TKey, TValue> where TKey: notnull {
 	{
 		if (data.ContainsKey(key))
 		{
-			data[key] = value;
+            data[key] = value;
 		}
 		else
 		{

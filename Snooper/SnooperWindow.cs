@@ -210,7 +210,7 @@ class SnooperWindow : IDisposable
 
                     ImGui.SameLine();
                 }
-                
+
                 if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Copy))
                 {
                     CopyToClipboard(log);

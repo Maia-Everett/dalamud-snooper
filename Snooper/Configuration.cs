@@ -9,7 +9,7 @@ using Snooper.Utils;
 namespace Snooper;
 
 [Serializable]
-public class Configuration: IPluginConfiguration
+public class Configuration : IPluginConfiguration
 {
     private static readonly XivChatType[] AllAllowedChatTypes =
     {
@@ -41,7 +41,7 @@ public class Configuration: IPluginConfiguration
         XivChatType.CrossLinkShell7,
         XivChatType.CrossLinkShell8,
     };
-    
+
     private const Sounds DefaultSound = Sounds.Sound16;
 
     private static uint ToImGuiColor(uint rgb)
@@ -62,7 +62,7 @@ public class Configuration: IPluginConfiguration
         { XivChatType.Alliance, ToImGuiColor(0xff9d20) },
         { XivChatType.FreeCompany, ToImGuiColor(0x9fd0d6) },
     };
-    
+
     static Configuration()
     {
         // Initialize LS and CWLS colors
@@ -77,7 +77,7 @@ public class Configuration: IPluginConfiguration
             DefaultChatColors.Add(cwlsChannel, lsColor);
         }
     }
-    
+
     public enum HoverModeType
     {
         Click = 0,
@@ -85,14 +85,16 @@ public class Configuration: IPluginConfiguration
         Joint = 2,
     }
 
-    public enum TimestampType {
+    public enum TimestampType
+    {
         Off = 0,
         System = 1,
-        Use12Hour  = 2,
+        Use12Hour = 2,
         Use24Hour = 3,
     }
 
-    public enum TimestampTimezone {
+    public enum TimestampTimezone
+    {
         Utc = 0,
         Local = 1,
     }
@@ -148,8 +150,10 @@ public class Configuration: IPluginConfiguration
         ChatColors[dest] = ChatColors[source];
     }
 
-    public Sounds GetEffectiveAlertSound() {
-        if (SoundAlerts == Sounds.None || (SoundAlerts >= Sounds.Sound01 && SoundAlerts <= Sounds.Sound16)) {
+    public Sounds GetEffectiveAlertSound()
+    {
+        if (SoundAlerts == Sounds.None || (SoundAlerts >= Sounds.Sound01 && SoundAlerts <= Sounds.Sound16))
+        {
             return SoundAlerts;
         }
 
@@ -166,5 +170,5 @@ public class Configuration: IPluginConfiguration
 
         [NonSerialized]
         public bool visible = true;
-    }    
+    }
 }

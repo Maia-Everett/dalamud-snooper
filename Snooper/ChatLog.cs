@@ -121,7 +121,8 @@ internal class ChatLog
             senders.Add(string.Join(", ", windowConfig.PlayerNames));
         }
 
-        try {
+        try
+        {
             foreach (var sender in senders)
             {
                 GetAppender(sender).WriteLine(message);
@@ -136,7 +137,8 @@ internal class ChatLog
 
     private StreamWriter GetAppender(string senderName)
     {
-        return appenderCache.GetOrLoad(senderName, key => {
+        return appenderCache.GetOrLoad(senderName, key =>
+        {
             Directory.CreateDirectory(configuration.LogDirectory);
             Directory.CreateDirectory(configuration.LogDirectory + "/global");
 
@@ -164,7 +166,8 @@ internal class ChatLog
 
         string fileName = configuration.LogDirectory + "/" + senderName + ".log";
 
-        try {
+        try
+        {
             using (var reader = new ReverseStreamReader(fileName))
             {
                 while (lines.Count < MaxMessagesPerSender)

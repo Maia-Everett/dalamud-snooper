@@ -9,7 +9,7 @@ namespace Snooper.Utils;
 
 internal class PlatformUtils
 {
-	internal static string GetDefaultLogDirectory()
+    internal static string GetDefaultLogDirectory()
     {
         string subdirName = "Snooper Logs";
 
@@ -22,23 +22,23 @@ internal class PlatformUtils
                 return xdgDocumentsDir + "/" + subdirName;
             }
         }
-        
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), subdirName);
-    }	
 
-	private static string? GetXdgDocumentsDirectory()
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), subdirName);
+    }
+
+    private static string? GetXdgDocumentsDirectory()
     {
         try
         {
-			// Wine hides the HOME environment variable from Windows processes,
-			// so we ask the Linux kernel (via /proc) for the environment directly
+            // Wine hides the HOME environment variable from Windows processes,
+            // so we ask the Linux kernel (via /proc) for the environment directly
             Dictionary<string, string> environment = GetLinuxEnvironment();
             string home = environment["HOME"];
 
-			if (home.IsNullOrEmpty())
-			{
-				return null;
-			}
+            if (home.IsNullOrEmpty())
+            {
+                return null;
+            }
 
             string xdgConfigHome = environment.GetValueOrDefault("XDG_CONFIG_HOME", home + "/.config");
             string userDirsConfig = xdgConfigHome + "/user-dirs.dirs";
@@ -67,20 +67,20 @@ internal class PlatformUtils
         }
     }
 
-	private static Dictionary<string, string> GetLinuxEnvironment()
-	{
-		var environment = new Dictionary<string, string>();
-            
-		foreach (var line in File.ReadAllText("/proc/self/environ").Split('\0'))
-		{
-			var eqIndex = line.IndexOf('=');
+    private static Dictionary<string, string> GetLinuxEnvironment()
+    {
+        var environment = new Dictionary<string, string>();
 
-			if (eqIndex != -1)
-			{
-				environment.Add(line[..eqIndex], line[(eqIndex + 1)..]);
-			}
-		}
+        foreach (var line in File.ReadAllText("/proc/self/environ").Split('\0'))
+        {
+            var eqIndex = line.IndexOf('=');
 
-		return environment;
-	}
+            if (eqIndex != -1)
+            {
+                environment.Add(line[..eqIndex], line[(eqIndex + 1)..]);
+            }
+        }
+
+        return environment;
+    }
 }

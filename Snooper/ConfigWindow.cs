@@ -79,11 +79,11 @@ class ConfigWindow : IDisposable
             fontScale = configuration.FontScale;
             enableFilter = configuration.EnableFilter;
             showOnStart = configuration.ShowOnStart;
-            showTimestamps = (int) configuration.ShowTimestamps;
-            displayTimezone = (int) configuration.DisplayTimezone;
+            showTimestamps = (int)configuration.ShowTimestamps;
+            displayTimezone = (int)configuration.DisplayTimezone;
             soundAlert = configuration.GetEffectiveAlertSound();
             autoscroll = configuration.Autoscroll;
-            hoverMode = (int) configuration.HoverMode;
+            hoverMode = (int)configuration.HoverMode;
             enableLogging = configuration.EnableLogging;
             logDirectory = configuration.LogDirectory;
 
@@ -152,11 +152,11 @@ class ConfigWindow : IDisposable
             configuration.FontScale = fontScale;
             configuration.EnableFilter = enableFilter;
             configuration.ShowOnStart = showOnStart;
-            configuration.ShowTimestamps = (Configuration.TimestampType) showTimestamps;
-            configuration.DisplayTimezone = (Configuration.TimestampTimezone) displayTimezone;
+            configuration.ShowTimestamps = (Configuration.TimestampType)showTimestamps;
+            configuration.DisplayTimezone = (Configuration.TimestampTimezone)displayTimezone;
             configuration.SoundAlerts = soundAlert;
             configuration.Autoscroll = autoscroll;
-            configuration.HoverMode = (Configuration.HoverModeType) hoverMode;
+            configuration.HoverMode = (Configuration.HoverModeType)hoverMode;
             configuration.EnableLogging = enableLogging;
             configuration.LogDirectory = logDirectory;
 
@@ -253,7 +253,7 @@ class ConfigWindow : IDisposable
                         playSound.Play(sound);
                     }
                 }
-                
+
                 ImGui.EndCombo();
             }
 
@@ -284,10 +284,11 @@ class ConfigWindow : IDisposable
             ImGui.SameLine();
             ImGui.RadioButton("Joint", ref localConfig.hoverMode, (int)Configuration.HoverModeType.Joint);
 
-            if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) {
+            if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+            {
                 ImGui.SetTooltip("Shows log of selected target if there is one, otherwise of moused-over player");
             }
-            
+
             ImGuiHelpers.ScaledDummy(new Vector2(0, 8));
 
             ImGui.Checkbox("Save log files to:", ref localConfig.enableLogging);
