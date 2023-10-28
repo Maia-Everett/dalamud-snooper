@@ -110,8 +110,7 @@ internal class ChatLog
 
     private void LogToFile(ChatEntry entry)
     {
-        string message = string.Format("[{0} ST] {1}",
-                entry.Time.ToUniversalTime().ToString("H:mm:ss"), entry.ToString());
+        string message = entry.ToTimedString();
         var senders = new HashSet<string>
         {
             entry.Sender,

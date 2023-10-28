@@ -45,6 +45,11 @@ public class ChatEntry
 		this.Time = time;
 	}
 
+    public string ToTimedString()
+    {
+        return string.Format("[{0} ST] {1}", Time.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss"), ToString());
+    }
+
 	public override string ToString()
 	{
 		return string.Format(formats[Type], Sender, Message);
