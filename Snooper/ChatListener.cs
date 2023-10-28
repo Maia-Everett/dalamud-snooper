@@ -65,7 +65,7 @@ internal class ChatListener : IDisposable
             // to the character name. Strip the entire Private Use Area to be safe.
             playerName = UnicodePrivateUseArea.Replace(playerName, "");
 
-            chatLog.Add(playerName, new ChatEntry(playerName, message.ToString(), type, DateTime.Now));
+            chatLog.Add(playerName, new ChatEntry(playerName, message.ToString(), type, DateTime.UtcNow));
 
             var alertSound = configuration.GetEffectiveAlertSound();
 
