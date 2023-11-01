@@ -80,7 +80,10 @@ internal class ChatListener : IDisposable
             var alertSound = configuration.GetEffectiveAlertSound();
 
             // Play alert if enabled and the message came from the target
-            if (alertSound != Sounds.None && pluginState.Visible && type != XivChatType.TellIncoming)
+            if (alertSound != Sounds.None
+                    && pluginState.Visible
+                    && type != XivChatType.TellIncoming
+                    && type != XivChatType.TellOutgoing)
             {
                 var target = targetManager.Target;
 
