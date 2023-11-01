@@ -159,7 +159,7 @@ internal class ChatLog
     {
         LinkedList<ChatEntry> lines = new();
 
-        if (nonLogged.Contains(senderName))
+        if (!configuration.EnableLogging || nonLogged.Contains(senderName))
         {
             return lines;
         }
