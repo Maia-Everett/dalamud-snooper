@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>Vielle Janlenoux</Authors>
     <Company></Company>
-    <Version>1.2.1.0</Version>
+    <Version>1.2.1.1</Version>
     <Description>See chat messages posted by your current target.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
