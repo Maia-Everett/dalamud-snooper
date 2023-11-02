@@ -194,6 +194,11 @@ internal class ChatLog
                 }
             }
         }
+        catch (FileNotFoundException)
+        {
+            // Not finding prior logs is normal and expected. Don't log the exception.
+            nonLogged.Add(senderName);
+        }
         catch (Exception e)
         {
             pluginLog.Error(e, "Cannot retrieve logs for {0}", senderName);
